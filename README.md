@@ -1,99 +1,60 @@
-# Creative Automation Pipeline - FDE Proof of Concept
+# Campaign Generator
 
-> **6-8 Hour Implementation**: GenAI-powered social campaign asset generation
+GenAI-powered campaign asset generation for multiple aspect ratios.
 
-## 🎯 What This Demo Does
+## Quick Start
 
-1. **Accepts campaign briefs** (JSON/YAML) with products, target audience, and campaign message
-2. **Generates hero images** using DALL-E 3 for missing assets
-3. **Creates 3 aspect ratios** (1:1, 9:16, 16:9) for each product
-4. **Adds text overlays** with campaign messaging
-5. **Organizes outputs** in folders by product/aspect ratio
-
-## Pre-req - install uv for your platform
-https://docs.astral.sh/uv/getting-started/installation/
-
-## 🚀 Quick Start
+**Prerequisites:** Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
 ```bash
-# Clone and setup
-git clone [repo-url]
-cd cgen
 
-# Set OpenAI API key
-echo "OPENAI_API_KEY=your_key_here" > .env
+# clone the repo
+git clone https://github.com/topiaruss/cgen.git
 
-# setup the environment
-cd app
-uv sync
+# Environment setup
+cp .env.example .env
+# Edit .env to add your OPENAI_API_KEY - obtain a key for this purpose. Delete when done.
 
+# Install dependencies and setup database
+uv sync --extra dev
 
-# Setup database and run
-uv run python manage.py migrate
-uv run python manage.py loaddata initial_languages.json 
-uv run python manage.py loaddata demo_briefs.json 
-uv run python manage.py loaddata demo_briefs_languages.json
-uv run python manage.py runserver
+# create the database and add some initial data
+uv run python app/manage.py migrate
+uv run python app/manage.py loaddata app/campaign_generator/fixtures/*.json
 
-# Visit http://localhost:8000
+# Run development server
+uv run python app/manage.py runserver
 ```
 
-## 📁 Project Structure
+Visit http://localhost:8000
+
+## Features
+
+- **Campaign brief management** with product and audience targeting
+- **AI image generation** using DALL-E 3 for missing product assets
+- **Multi-aspect ratio output** (1:1, 9:16, 16:9) for social platforms
+- **Text overlay system** with campaign messaging
+- **Web gallery** for viewing generated assets
+- **Organized file structure** by product and aspect ratio
+
+## Project Structure
 
 ```
-adobe_demo/
-├── app/
-│   ├── campaign_generator/     # Core MVP app
-│   │   ├── models.py          # Brief, GeneratedAsset models  
-│   │   ├── ai_service.py      # DALL-E integration
-│   │   └── views.py           # Simple web interface
-│   └── config/                # Django settings
-├── docs/
-│   ├── MVP_EXTRACTION.md      # Implementation plan
-│   ├── initial_doc.md         # Original brief context
-│   └── FDE Take Home Instructions.txt
-├── seeds/
-│   └── demo_briefs.json       # Sample campaign data
-└── FOCUSED_README.md          # Detailed documentation
+app/
+├── campaign_generator/        # Main Django app
+│   ├── models.py             # Brief, GeneratedAsset models
+│   ├── ai_service.py         # DALL-E integration
+│   ├── views.py              # Web interface
+│   ├── fixtures/             # Sample data
+│   └── templates/            # HTML templates
+├── config/                   # Django settings
+├── media/                    # Generated assets
+└── static/                   # CSS/JS assets
 ```
 
-## 📊 Demo Flow
+## Development
 
-1. Upload campaign brief via web form
-2. System generates missing product images via DALL-E
-3. Adds campaign message overlay for each aspect ratio  
-4. Downloads organized ZIP file with all assets
-5. View generated images in web gallery
-
-## 🎨 Example Output
-
-For "Pacific Pulse Energy Drink":
+```bash
+# Run tests
+uv run pytest
 ```
-outputs/
-├── pacific_pulse_original/
-│   ├── 1x1/campaign_20241213_143052.jpg    # Instagram feed
-│   ├── 9x16/campaign_20241213_143053.jpg   # Stories/TikTok  
-│   └── 16x9/campaign_20241213_143054.jpg   # YouTube/video
-└── pacific_pulse_zero/
-    ├── 1x1/campaign_20241213_143055.jpg
-    ├── 9x16/campaign_20241213_143056.jpg
-    └── 16x9/campaign_20241213_143057.jpg
-```
-
-## 🔧 Key Design Decisions
-
-- **Django Framework**: Rapid development, built-in admin
-- **DALL-E 3**: State-of-the-art image generation  
-- **Comparable Images**: Same core scene, aspect-optimized framing
-- **Simple File Storage**: Direct filesystem organization
-- **Focused Scope**: Core requirements only, no over-engineering
-
-## ⚡ Performance Notes
-
-- **Generation Time**: ~30 seconds per product (3 images)
-- **Cost**: ~$0.12 per image via DALL-E 3
-- **Output Quality**: 1024x1024 base resolution, scaled to aspect ratios
-
----
-
-**Built for FDE Interview Exercise** | Demonstrates GenAI creative automation in 6-8 hours

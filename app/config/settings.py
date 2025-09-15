@@ -123,7 +123,7 @@ USE_TZ = True
 # Custom date formats
 # ISO format without microseconds: 2025-09-14T02:26:15+00:00
 DATE_FORMAT = "Y-m-d"
-DATETIME_FORMAT = "Y-m-d\TH:i:sO"  # ISO 8601 without microseconds
+DATETIME_FORMAT = r"Y-m-d\TH:i:sO"  # ISO 8601 without microseconds
 SHORT_DATETIME_FORMAT = "Y-m-d H:i:s"
 
 

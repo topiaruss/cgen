@@ -21,28 +21,25 @@ class CampaignGenerator:
 
         # Feature flag for outpainting approach (configurable via settings)
         self.use_outpaint_method = getattr(settings, "USE_OUTPAINT_METHOD", True)
-        
+
         # Development mode flag - when True, uses mock generation instead of real API calls
         self.dev_mode = getattr(settings, "AI_DEV_MODE", False)
 
     def generate_campaign_assets(self, brief):
         """Generate images for each product x aspect ratio using selected method
-        
+
         Each generation creates a new GenerationRun. If it fails, just create another run.
         This ensures visual consistency within each run and easy retry capability.
         """
         from .models import GenerationRun
 
         # Get next run index for this brief
-        latest_run = GenerationRun.objects.filter(brief=brief).order_by('-run_index').first()
+        latest_run = GenerationRun.objects.filter(brief=brief).order_by("-run_index").first()
         next_run_index = (latest_run.run_index + 1) if latest_run else 1
 
         # Create new generation run
-        generation_run = GenerationRun.objects.create(
-            brief=brief,
-            run_index=next_run_index
-        )
-        
+        generation_run = GenerationRun.objects.create(brief=brief, run_index=next_run_index)
+
         assets = []
         total_time = 0
 
@@ -53,19 +50,27 @@ class CampaignGenerator:
                 reference_assets = self._create_reference_image_assets(brief, generation_run)
                 assets.extend(reference_assets)
                 # Reference images have 0 generation time
-                
+
             else:
                 # Generate all AI assets for this run (products × languages × aspect ratios)
                 for language in brief.get_all_languages():
                     for product in brief.products:
                         if self.use_outpaint_method:
                             # NEW METHOD: Generate consistent base image, then outpaint for different aspect ratios
-                            product_assets = self._generate_assets_with_outpainting(product, brief, generation_run, language)
+                            product_assets = self._generate_assets_with_outpainting(
+                                product, brief, generation_run, language
+                            )
                         else:
                             # ORIGINAL METHOD: Generate 3 DIFFERENT images, each optimized for its aspect ratio
-                            square_asset = self.generate_square_image(product, brief, generation_run, language)
-                            story_asset = self.generate_story_image(product, brief, generation_run, language)
-                            landscape_asset = self.generate_landscape_image(product, brief, generation_run, language)
+                            square_asset = self.generate_square_image(
+                                product, brief, generation_run, language
+                            )
+                            story_asset = self.generate_story_image(
+                                product, brief, generation_run, language
+                            )
+                            landscape_asset = self.generate_landscape_image(
+                                product, brief, generation_run, language
+                            )
                             product_assets = [square_asset, story_asset, landscape_asset]
 
                         assets.extend(product_assets)
@@ -98,7 +103,9 @@ class CampaignGenerator:
         Frame tightly for social media feed engagement.
         Leave clear space at bottom 20% for text overlay.
         """
-        return self._generate_and_save(aspect_prompt, product, brief, "1:1", generation_run, language)
+        return self._generate_and_save(
+            aspect_prompt, product, brief, "1:1", generation_run, language
+        )
 
     def generate_story_image(self, product, brief, generation_run, language=None):
         """9:16 - Vertical crop of same scene for Stories/TikTok"""
@@ -109,7 +116,9 @@ class CampaignGenerator:
         Show more vertical context around the same core scene.
         Leave clear space at bottom 15% for text overlay.
         """
-        return self._generate_and_save(aspect_prompt, product, brief, "9:16", generation_run, language)
+        return self._generate_and_save(
+            aspect_prompt, product, brief, "9:16", generation_run, language
+        )
 
     def generate_landscape_image(self, product, brief, generation_run, language=None):
         """16:9 - Horizontal crop of same scene for YouTube/video"""
@@ -120,13 +129,15 @@ class CampaignGenerator:
         Show more horizontal context of the same core scene.
         Leave clear space at bottom 15% for text overlay.
         """
-        return self._generate_and_save(aspect_prompt, product, brief, "16:9", generation_run, language)
+        return self._generate_and_save(
+            aspect_prompt, product, brief, "16:9", generation_run, language
+        )
 
     def _build_core_scene_prompt(self, product, brief, language=None):
         """Build the core scene description that stays consistent across aspect ratios"""
         if language is None:
             language = brief.primary_language
-            
+
         return f"""
         Professional product photography of {product["name"]} ({product.get("type", "product")}).
         Setting: {brief.target_region} environment suitable for {brief.target_audience}.
@@ -141,7 +152,9 @@ class CampaignGenerator:
         The SAME core composition and lighting setup, but optimized framing for different aspect ratios.
         """
 
-    def _generate_and_save(self, prompt, product, brief, aspect_ratio, generation_run, language=None):
+    def _generate_and_save(
+        self, prompt, product, brief, aspect_ratio, generation_run, language=None
+    ):
         """Generate single asset with specific prompt and composition"""
         start_time = time.time()
 
@@ -169,7 +182,7 @@ class CampaignGenerator:
         if self.dev_mode:
             # Return a mock image in development mode
             return self._create_mock_image()
-            
+
         try:
             response = self.client.images.generate(
                 model="dall-e-3",
@@ -206,31 +219,31 @@ class CampaignGenerator:
     def _create_mock_image(self):
         """Create a mock image for development/testing purposes"""
         from PIL import Image, ImageDraw, ImageFont
-        
+
         # Create a simple mock image
-        img = Image.new('RGB', (1024, 1024), color='lightblue')
+        img = Image.new("RGB", (1024, 1024), color="lightblue")
         draw = ImageDraw.Draw(img)
-        
+
         # Add some text to indicate it's a mock
         try:
             # Try to use a default font
             font = ImageFont.load_default()
         except:
             font = None
-            
+
         text = "MOCK IMAGE\n(Dev Mode)"
         bbox = draw.textbbox((0, 0), text, font=font)
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
-        
+
         x = (1024 - text_width) // 2
         y = (1024 - text_height) // 2
-        
-        draw.text((x, y), text, fill='darkblue', font=font)
-        
+
+        draw.text((x, y), text, fill="darkblue", font=font)
+
         # Convert to bytes
         img_bytes = BytesIO()
-        img.save(img_bytes, format='JPEG')
+        img.save(img_bytes, format="JPEG")
         img_bytes.seek(0)
         return img_bytes.getvalue()
 
@@ -324,40 +337,42 @@ class CampaignGenerator:
 
     def _get_original_square_image_data(self, square_asset, product, brief, base_prompt):
         """Get the original square image data without banner text for outpainting"""
-        
+
         # If we have the original image data stored, use it
-        if hasattr(square_asset, 'original_image_data') and square_asset.original_image_data:
+        if hasattr(square_asset, "original_image_data") and square_asset.original_image_data:
             return square_asset.original_image_data
-        
+
         # Fallback: if for some reason we don't have the original data,
         # we need to regenerate the square image without banner text
-        print(f"⚠️  Original image data not found, regenerating for {product.get('name', 'Product')}...")
-        
+        print(
+            f"⚠️  Original image data not found, regenerating for {product.get('name', 'Product')}..."
+        )
+
         # Generate the square image using DALL-E (or mock in dev mode)
         square_prompt = self._create_square_prompt(product, brief)
-        
+
         # Call DALL-E to get the original image
         image_data = self._call_dalle(square_prompt)
-        
+
         return image_data
 
     def _convert_to_png_bytes(self, image_data):
         """Convert image data to PNG format for OpenAI API compatibility"""
         from PIL import Image
-        
+
         # Load the image from bytes
         image = Image.open(BytesIO(image_data))
-        
+
         # Convert to RGB if necessary (PNG doesn't support all modes)
-        if image.mode in ('RGBA', 'LA'):
+        if image.mode in ("RGBA", "LA"):
             # Keep transparency for PNG
             pass
-        elif image.mode != 'RGB':
-            image = image.convert('RGB')
-        
+        elif image.mode != "RGB":
+            image = image.convert("RGB")
+
         # Convert to PNG bytes
         png_buffer = BytesIO()
-        image.save(png_buffer, format='PNG')
+        image.save(png_buffer, format="PNG")
         return png_buffer.getvalue()
 
     def _build_context_and_mask(self, base_1024, direction, step_px=384):
@@ -368,7 +383,7 @@ class CampaignGenerator:
         For efficiency we keep (1024 - step_px) px of context and reveal 'step_px' for generation.
         """
         from PIL import Image
-        
+
         if base_1024.size != (1024, 1024):
             raise ValueError("Context builder expects a 1024x1024 image.")
 
@@ -401,7 +416,7 @@ class CampaignGenerator:
         horizontal=True -> left (0) to right (255)
         """
         from PIL import Image
-        
+
         ramp = Image.new("L", (width, height))
         # Build gradient using a single-row/column and resize (fast and smooth)
         if horizontal:
@@ -418,7 +433,7 @@ class CampaignGenerator:
         The overlap is linear to reduce visible seams.
         """
         from PIL import Image, ImageChops
-        
+
         base = base.convert("RGBA") if base.mode != "RGBA" else base
         new_strip = new_strip.convert("RGBA") if new_strip.mode != "RGBA" else new_strip
 
@@ -460,7 +475,9 @@ class CampaignGenerator:
                 overlap_old = out.crop((0, 0, overlap_px, bh))
 
                 # Horizontal ramp but reversed (we want 0 at right, 255 at left for new)
-                ramp = self._alpha_ramp(overlap_px, bh, horizontal=True).transpose(Image.FLIP_LEFT_RIGHT)
+                ramp = self._alpha_ramp(overlap_px, bh, horizontal=True).transpose(
+                    Image.FLIP_LEFT_RIGHT
+                )
                 overlap_new_mask = ramp
                 overlap_old_mask = ImageChops.invert(ramp)
 
@@ -503,7 +520,9 @@ class CampaignGenerator:
                 overlap_new = new_strip.crop((0, sh - overlap_px, sw, sh))
                 overlap_old = out.crop((0, 0, bw, overlap_px))
 
-                ramp = self._alpha_ramp(sw, overlap_px, horizontal=False).transpose(Image.FLIP_TOP_BOTTOM)
+                ramp = self._alpha_ramp(sw, overlap_px, horizontal=False).transpose(
+                    Image.FLIP_TOP_BOTTOM
+                )
                 overlap_new_mask = ramp
                 overlap_old_mask = ImageChops.invert(ramp)
 
@@ -527,7 +546,7 @@ class CampaignGenerator:
         blending the generated strip back into the full canvas.
         """
         from PIL import Image
-        
+
         if direction in ("right", "left"):
             assert current.height == 1024, "Height must be 1024 for horizontal extension."
             # Build a 1024x1024 context image by sampling edge area of 'current'
@@ -535,7 +554,7 @@ class CampaignGenerator:
             if current.width < 1024:
                 # Pad to 1024 (rare if starting exactly 1024)
                 padded = Image.new("RGBA", (1024, 1024), (0, 0, 0, 0))
-                padded.paste(current, ((1024 - current.width)//2, 0))
+                padded.paste(current, ((1024 - current.width) // 2, 0))
                 base_for_ctx = padded
             else:
                 # Use the last 1024 region touching the edge we're extending
@@ -555,7 +574,9 @@ class CampaignGenerator:
                 # Prepend the retained context part so seam aligns during blend
                 new_strip_full = Image.new("RGBA", (step_px + overlap_px, 1024))
                 # overlap comes from the tile too (left side of the new strip region)
-                overlap_from_tile = tile.crop((1024 - step_px - overlap_px, 0, 1024 - step_px, 1024))
+                overlap_from_tile = tile.crop(
+                    (1024 - step_px - overlap_px, 0, 1024 - step_px, 1024)
+                )
                 new_strip_full.paste(overlap_from_tile, (0, 0))
                 new_strip_full.paste(new_strip, (overlap_px, 0))
                 return self._blend_strip(current, new_strip_full, overlap_px, "right")
@@ -571,7 +592,7 @@ class CampaignGenerator:
             assert current.width == 1024, "Width must be 1024 for vertical extension."
             if current.height < 1024:
                 padded = Image.new("RGBA", (1024, 1024), (0, 0, 0, 0))
-                padded.paste(current, (0, (1024 - current.height)//2))
+                padded.paste(current, (0, (1024 - current.height) // 2))
                 base_for_ctx = padded
             else:
                 if direction == "down":
@@ -583,7 +604,9 @@ class CampaignGenerator:
             tile = self._call_images_edit(canvas, mask, prompt)
             if direction == "down":
                 new_strip = tile.crop((0, 1024 - step_px, 1024, 1024))
-                overlap_from_tile = tile.crop((0, 1024 - step_px - overlap_px, 1024, 1024 - step_px))
+                overlap_from_tile = tile.crop(
+                    (0, 1024 - step_px - overlap_px, 1024, 1024 - step_px)
+                )
                 new_strip_full = Image.new("RGBA", (1024, step_px + overlap_px))
                 new_strip_full.paste(overlap_from_tile, (0, 0))
                 new_strip_full.paste(new_strip, (0, overlap_px))
@@ -599,17 +622,17 @@ class CampaignGenerator:
     def _call_images_edit(self, canvas_rgba, mask_rgba, prompt):
         """Call OpenAI images.edit API with proper file handling"""
         from PIL import Image
-        
+
         # Truncate prompt to fit API limit (1000 characters)
         truncated_prompt = prompt[:997] + "..." if len(prompt) > 1000 else prompt
-        
+
         buf_img = BytesIO()
         buf_mask = BytesIO()
         canvas_rgba.save(buf_img, format="PNG")
         mask_rgba.save(buf_mask, format="PNG")
         buf_img.seek(0)
         buf_mask.seek(0)
-        
+
         # Set filenames for proper MIME type detection
         buf_img.name = "image.png"
         buf_mask.name = "mask.png"
@@ -620,9 +643,9 @@ class CampaignGenerator:
             prompt=truncated_prompt,
             size="1024x1024",
             n=1,
-            response_format="b64_json"
+            response_format="b64_json",
         )
-        
+
         # Convert base64 to PIL Image
         image_b64 = resp.data[0].b64_json
         image_bytes = base64.b64decode(image_b64)
@@ -637,41 +660,41 @@ class CampaignGenerator:
         4. Extract and return the new strip
         """
         from PIL import Image
-        
+
         # Step 1: Create mask covering entire 1024x1024 image
         mask = Image.new("RGBA", (1024, 1024), (255, 255, 255, 255))  # Opaque = keep
-        
+
         # Step 2: Create 1024x1024 canvas and slide image+mask
         canvas = Image.new("RGBA", (1024, 1024), (0, 0, 0, 0))
         canvas_mask = Image.new("RGBA", (1024, 1024), (0, 0, 0, 0))
-        
+
         if direction == "right":
             # Slide image+mask 384px to the left, leaving 384px gap on right
             canvas.paste(original_image, (-step_px, 0))
             canvas_mask.paste(mask, (-step_px, 0))
             # The right 384px of canvas and canvas_mask are now transparent (gap)
-            
+
         elif direction == "left":
             # Slide image+mask 384px to the right, leaving 384px gap on left
             canvas.paste(original_image, (step_px, 0))
             canvas_mask.paste(mask, (step_px, 0))
             # The left 384px of canvas and canvas_mask are now transparent (gap)
-            
+
         elif direction == "down":
             # Slide image+mask 384px up, leaving 384px gap on bottom
             canvas.paste(original_image, (0, -step_px))
             canvas_mask.paste(mask, (0, -step_px))
             # The bottom 384px of canvas and canvas_mask are now transparent (gap)
-            
+
         elif direction == "up":
             # Slide image+mask 384px down, leaving 384px gap on top
             canvas.paste(original_image, (0, step_px))
             canvas_mask.paste(mask, (0, step_px))
             # The top 384px of canvas and canvas_mask are now transparent (gap)
-        
+
         # Step 3: Send to DALL-E to fill the gap
         tile = self._call_images_edit(canvas, canvas_mask, prompt)
-        
+
         # Step 4: Extract the new strip
         if direction == "right":
             # Extract the right 384px (the filled gap)
@@ -685,26 +708,26 @@ class CampaignGenerator:
         elif direction == "up":
             # Extract the top 384px (the filled gap)
             new_strip = tile.crop((0, 0, 1024, step_px))
-        
+
         return new_strip
 
     def _create_vertical_outpaint_mask(self):
         """Create a mask for vertical outpainting (9:16 portrait from 1024x1024 base)"""
         from PIL import Image, ImageDraw
-        
+
         # Final target canvas is 1024x1792 (9:16)
         mask = Image.new("RGBA", (1024, 1792), (0, 0, 0, 0))  # Fully transparent
-        
+
         # The center 1024x1024 region should remain opaque
-        x_offset = 0                   # no horizontal offset
+        x_offset = 0  # no horizontal offset
         y_offset = (1792 - 1024) // 2  # centers vertically
-        
+
         draw = ImageDraw.Draw(mask)
         draw.rectangle(
             [x_offset, y_offset, x_offset + 1024, y_offset + 1024],
-            fill=(0, 0, 0, 255)  # opaque black = keep
+            fill=(0, 0, 0, 255),  # opaque black = keep
         )
-        
+
         # Convert to bytes
         mask_buffer = BytesIO()
         mask.save(mask_buffer, format="PNG")
@@ -713,141 +736,145 @@ class CampaignGenerator:
     def _create_mock_landscape_image(self):
         """Create a mock landscape image for dev mode"""
         from PIL import Image, ImageDraw, ImageFont
-        
+
         # Create 1792x1024 landscape image
-        img = Image.new('RGB', (1792, 1024), color='lightblue')
+        img = Image.new("RGB", (1792, 1024), color="lightblue")
         draw = ImageDraw.Draw(img)
-        
+
         try:
             font = ImageFont.load_default()
         except:
             font = None
-            
+
         text = "MOCK LANDSCAPE\n(Dev Mode)"
         bbox = draw.textbbox((0, 0), text, font=font)
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
-        
+
         x = (1792 - text_width) // 2
         y = (1024 - text_height) // 2
-        
-        draw.text((x, y), text, fill='darkblue', font=font)
-        
+
+        draw.text((x, y), text, fill="darkblue", font=font)
+
         # Convert to bytes
         img_bytes = BytesIO()
-        img.save(img_bytes, format='JPEG')
+        img.save(img_bytes, format="JPEG")
         img_bytes.seek(0)
         return img_bytes.getvalue()
 
     def _create_mock_vertical_image(self):
         """Create a mock vertical image for dev mode"""
         from PIL import Image, ImageDraw, ImageFont
-        
+
         # Create 1024x1792 portrait image
-        img = Image.new('RGB', (1024, 1792), color='lightgreen')
+        img = Image.new("RGB", (1024, 1792), color="lightgreen")
         draw = ImageDraw.Draw(img)
-        
+
         try:
             font = ImageFont.load_default()
         except:
             font = None
-            
+
         text = "MOCK VERTICAL\n(Dev Mode)"
         bbox = draw.textbbox((0, 0), text, font=font)
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
-        
+
         x = (1024 - text_width) // 2
         y = (1792 - text_height) // 2
-        
-        draw.text((x, y), text, fill='darkgreen', font=font)
-        
+
+        draw.text((x, y), text, fill="darkgreen", font=font)
+
         # Convert to bytes
         img_bytes = BytesIO()
-        img.save(img_bytes, format='JPEG')
+        img.save(img_bytes, format="JPEG")
         img_bytes.seek(0)
         return img_bytes.getvalue()
 
     def _extend_image_horizontally_fallback(self, square_image_data, target_aspect_ratio):
         """Fallback PIL-based horizontal extension (original method)"""
-        from PIL import Image, ImageDraw, ImageFilter
-        
+        from PIL import Image, ImageFilter
+
         # Load the square image
         square_image = Image.open(BytesIO(square_image_data))
-        
+
         # Calculate target dimensions for 16:9 aspect ratio
         original_size = square_image.size[0]  # Assuming square image
         # Use the same dimensions as the incremental method: 1792x1024
         target_width = 1792
         target_height = 1024
-        
+
         # Create new landscape canvas
-        landscape_image = Image.new('RGB', (target_width, target_height), color='white')
-        
+        landscape_image = Image.new("RGB", (target_width, target_height), color="white")
+
         # Calculate position to center the square image
         x_offset = (target_width - original_size) // 2
-        
+
         # Paste the square image in the center
         landscape_image.paste(square_image, (x_offset, 0))
-        
+
         # Extend the background by copying and blurring edges
         left_extension = square_image.crop((0, 0, original_size // 4, original_size))
-        right_extension = square_image.crop((3 * original_size // 4, 0, original_size, original_size))
-        
+        right_extension = square_image.crop(
+            (3 * original_size // 4, 0, original_size, original_size)
+        )
+
         # Blur the extensions to create seamless background
         left_extension = left_extension.filter(ImageFilter.GaussianBlur(radius=2))
         right_extension = right_extension.filter(ImageFilter.GaussianBlur(radius=2))
-        
+
         # Fill the left and right areas
         for x in range(x_offset):
             landscape_image.paste(left_extension, (x, 0))
         for x in range(x_offset + original_size, target_width):
             landscape_image.paste(right_extension, (x, 0))
-        
+
         # Convert back to bytes
         output_buffer = BytesIO()
-        landscape_image.save(output_buffer, format='JPEG', quality=90)
+        landscape_image.save(output_buffer, format="JPEG", quality=90)
         return output_buffer.getvalue()
 
     def _extend_image_vertically_fallback(self, square_image_data, target_aspect_ratio):
         """Fallback PIL-based vertical extension (original method)"""
-        from PIL import Image, ImageDraw, ImageFilter
-        
+        from PIL import Image, ImageFilter
+
         # Load the square image
         square_image = Image.open(BytesIO(square_image_data))
-        
+
         # Calculate target dimensions for 9:16 aspect ratio
         original_size = square_image.size[0]  # Assuming square image
         # Use the same dimensions as the incremental method: 1024x1792
         target_width = 1024
         target_height = 1792
-        
+
         # Create new portrait canvas
-        portrait_image = Image.new('RGB', (target_width, target_height), color='white')
-        
+        portrait_image = Image.new("RGB", (target_width, target_height), color="white")
+
         # Calculate position to center the square image
         y_offset = (target_height - original_size) // 2
-        
+
         # Paste the square image in the center
         portrait_image.paste(square_image, (0, y_offset))
-        
+
         # Extend the background by copying and blurring edges
         top_extension = square_image.crop((0, 0, original_size, original_size // 4))
-        bottom_extension = square_image.crop((0, 3 * original_size // 4, original_size, original_size))
-        
+        bottom_extension = square_image.crop(
+            (0, 3 * original_size // 4, original_size, original_size)
+        )
+
         # Blur the extensions to create seamless background
         top_extension = top_extension.filter(ImageFilter.GaussianBlur(radius=2))
         bottom_extension = bottom_extension.filter(ImageFilter.GaussianBlur(radius=2))
-        
+
         # Fill the top and bottom areas
         for y in range(y_offset):
             portrait_image.paste(top_extension, (0, y))
         for y in range(y_offset + original_size, target_height):
             portrait_image.paste(bottom_extension, (0, y))
-        
+
         # Convert back to bytes
         output_buffer = BytesIO()
-        portrait_image.save(output_buffer, format='JPEG', quality=90)
+        portrait_image.save(output_buffer, format="JPEG", quality=90)
         return output_buffer.getvalue()
 
     def _wrap_text(self, text, font, max_width):
@@ -899,27 +926,30 @@ class CampaignGenerator:
 
     def _get_translated_message(self, brief, language):
         """Get translated campaign message for the specified language, with database caching"""
-        if language.code == 'en' or language.code == brief.primary_language.code:
+        if language.code == "en" or language.code == brief.primary_language.code:
             return brief.campaign_message
-        
+
         # First check if we already have a translation cached for this brief+language combination
         from .models import GeneratedAsset
-        existing_asset = GeneratedAsset.objects.filter(
-            brief=brief,
-            language=language
-        ).exclude(translated_campaign_message='').first()
-        
+
+        existing_asset = (
+            GeneratedAsset.objects.filter(brief=brief, language=language)
+            .exclude(translated_campaign_message="")
+            .first()
+        )
+
         if existing_asset and existing_asset.translated_campaign_message:
             return existing_asset.translated_campaign_message
-        
+
         # If no cached translation, generate one using TranslationService
         try:
             from .translation_service import TranslationService
+
             translator = TranslationService()
             translated_message = translator.translate_text(
                 text=brief.campaign_message,
                 target_language=language.code,
-                source_language=brief.primary_language.code
+                source_language=brief.primary_language.code,
             )
             return translated_message
         except Exception as e:
@@ -961,7 +991,7 @@ class CampaignGenerator:
             language=language or brief.primary_language,
         )
         assets.append(square_asset)
-        
+
         # Store the original image data (without banner) for outpainting
         square_asset.original_image_data = base_image_data
 
@@ -984,7 +1014,7 @@ class CampaignGenerator:
     def _generate_assets_with_outpainting_in_memory(self, product, brief):
         """
         IN-MEMORY VERSION: Generate consistent images using base square + outpainting
-        
+
         Returns asset data dictionaries instead of saving to database.
         This allows for atomic operations - all succeed or none are saved.
         """
@@ -1001,18 +1031,20 @@ class CampaignGenerator:
 
         # Store base square asset data (don't save to DB yet)
         base_url = "mock://base_image.jpg"  # Mock URL for dev mode
-        assets_data.append({
-            'product_name': product_name,
-            'aspect_ratio': '1:1',
-            'image_url': base_url,
-            'prompt': base_prompt,
-            'generation_time_seconds': generation_time
-        })
+        assets_data.append(
+            {
+                "product_name": product_name,
+                "aspect_ratio": "1:1",
+                "image_url": base_url,
+                "prompt": base_prompt,
+                "generation_time_seconds": generation_time,
+            }
+        )
 
         # Step 2: Generate landscape (16:9) by extending horizontally
         print(f"🖼️ Generating landscape image for {product_name}...")
         landscape_prompt = self._build_landscape_outpaint_prompt(product, brief)
-        
+
         start_time = time.time()
         landscape_response = self.client.images.generate(
             model="dall-e-3",
@@ -1025,18 +1057,20 @@ class CampaignGenerator:
 
         # Store landscape asset data
         landscape_url = landscape_response.data[0].url
-        assets_data.append({
-            'product_name': product_name,
-            'aspect_ratio': '16:9',
-            'image_url': landscape_url,
-            'prompt': landscape_prompt,
-            'generation_time_seconds': generation_time
-        })
+        assets_data.append(
+            {
+                "product_name": product_name,
+                "aspect_ratio": "16:9",
+                "image_url": landscape_url,
+                "prompt": landscape_prompt,
+                "generation_time_seconds": generation_time,
+            }
+        )
 
         # Step 3: Generate vertical (9:16) by extending vertically
         print(f"📱 Generating vertical image for {product_name}...")
         vertical_prompt = self._build_vertical_outpaint_prompt(product, brief)
-        
+
         start_time = time.time()
         vertical_response = self.client.images.generate(
             model="dall-e-3",
@@ -1049,13 +1083,15 @@ class CampaignGenerator:
 
         # Store vertical asset data
         vertical_url = vertical_response.data[0].url
-        assets_data.append({
-            'product_name': product_name,
-            'aspect_ratio': '9:16',
-            'image_url': vertical_url,
-            'prompt': vertical_prompt,
-            'generation_time_seconds': generation_time
-        })
+        assets_data.append(
+            {
+                "product_name": product_name,
+                "aspect_ratio": "9:16",
+                "image_url": vertical_url,
+                "prompt": vertical_prompt,
+                "generation_time_seconds": generation_time,
+            }
+        )
 
         return assets_data
 
@@ -1068,17 +1104,17 @@ class CampaignGenerator:
         Frame tightly for social media feed engagement.
         Leave clear space at bottom 20% for text overlay.
         """
-        
+
         start_time = time.time()
         response = self._call_dalle(aspect_prompt)
         generation_time = time.time() - start_time
-        
+
         return {
-            'product_name': product.get("name", "Product"),
-            'aspect_ratio': '1:1',
-            'image_url': response,  # This is actually the URL from _call_dalle
-            'prompt': aspect_prompt,
-            'generation_time_seconds': generation_time
+            "product_name": product.get("name", "Product"),
+            "aspect_ratio": "1:1",
+            "image_url": response,  # This is actually the URL from _call_dalle
+            "prompt": aspect_prompt,
+            "generation_time_seconds": generation_time,
         }
 
     def _generate_story_image_in_memory(self, product, brief):
@@ -1090,17 +1126,17 @@ class CampaignGenerator:
         Product should be prominent but allow for vertical scrolling experience.
         Leave clear space at bottom 25% for text overlay.
         """
-        
+
         start_time = time.time()
         response = self._call_dalle(aspect_prompt)
         generation_time = time.time() - start_time
-        
+
         return {
-            'product_name': product.get("name", "Product"),
-            'aspect_ratio': '9:16',
-            'image_url': response,
-            'prompt': aspect_prompt,
-            'generation_time_seconds': generation_time
+            "product_name": product.get("name", "Product"),
+            "aspect_ratio": "9:16",
+            "image_url": response,
+            "prompt": aspect_prompt,
+            "generation_time_seconds": generation_time,
         }
 
     def _generate_landscape_image_in_memory(self, product, brief):
@@ -1112,17 +1148,17 @@ class CampaignGenerator:
         Product should be prominent with room for side elements.
         Leave clear space at bottom 20% for text overlay.
         """
-        
+
         start_time = time.time()
         response = self._call_dalle(aspect_prompt)
         generation_time = time.time() - start_time
-        
+
         return {
-            'product_name': product.get("name", "Product"),
-            'aspect_ratio': '16:9',
-            'image_url': response,
-            'prompt': aspect_prompt,
-            'generation_time_seconds': generation_time
+            "product_name": product.get("name", "Product"),
+            "aspect_ratio": "16:9",
+            "image_url": response,
+            "prompt": aspect_prompt,
+            "generation_time_seconds": generation_time,
         }
 
     def _build_consistent_base_prompt(self, product, brief):
@@ -1157,13 +1193,17 @@ class CampaignGenerator:
         Background should be photographically realistic and easily extendable in both horizontal and vertical directions.
         """.strip()
 
-    def _create_landscape_from_square(self, square_asset, product, brief, base_prompt, language=None):
+    def _create_landscape_from_square(
+        self, square_asset, product, brief, base_prompt, language=None
+    ):
         """Create 16:9 landscape version by extending the square image horizontally"""
-        
+
         # Get the original square image data (without banner text) for outpainting
         # We need to regenerate the square image without banner text for clean extension
-        square_image_data = self._get_original_square_image_data(square_asset, product, brief, base_prompt)
-        
+        square_image_data = self._get_original_square_image_data(
+            square_asset, product, brief, base_prompt
+        )
+
         # Create outpainting prompt that references the existing image
         landscape_prompt = f"""
         {base_prompt}
@@ -1175,7 +1215,7 @@ class CampaignGenerator:
         - Keep the same color palette and style as the original square image
         - The central area should be identical to the square version
         """.strip()
-        
+
         # Create landscape version using OpenAI outpainting
         start_time = time.time()
         landscape_image_data = self._outpaint_landscape(square_image_data, landscape_prompt)
@@ -1195,13 +1235,17 @@ class CampaignGenerator:
 
         return landscape_asset
 
-    def _create_vertical_from_square(self, square_asset, product, brief, base_prompt, language=None):
+    def _create_vertical_from_square(
+        self, square_asset, product, brief, base_prompt, language=None
+    ):
         """Create 9:16 vertical version by extending the square image vertically"""
-        
+
         # Get the original square image data (without banner text) for outpainting
         # We need to regenerate the square image without banner text for clean extension
-        square_image_data = self._get_original_square_image_data(square_asset, product, brief, base_prompt)
-        
+        square_image_data = self._get_original_square_image_data(
+            square_asset, product, brief, base_prompt
+        )
+
         # Create outpainting prompt that references the existing image
         vertical_prompt = f"""
         {base_prompt}
@@ -1214,7 +1258,7 @@ class CampaignGenerator:
         - The central area should be identical to the square version
         - Perfect for mobile/story format
         """.strip()
-        
+
         # Create vertical version using OpenAI outpainting
         start_time = time.time()
         vertical_image_data = self._outpaint_vertical(square_image_data, vertical_prompt)
@@ -1239,43 +1283,43 @@ class CampaignGenerator:
         if self.dev_mode:
             # In dev mode, use the fallback method that properly extends the input image
             return self._extend_image_horizontally_fallback(square_image_data, "16:9")
-        
+
         try:
             from PIL import Image
-            
+
             # Convert image data to PIL Image
             original_image = Image.open(BytesIO(square_image_data)).convert("RGBA")
             if original_image.size != (1024, 1024):
                 raise ValueError(f"Expected 1024x1024 image, got {original_image.size}")
-            
-            print(f"🎨 Starting landscape outpainting: 1024x1024 → 1792x1024")
-            
+
+            print("🎨 Starting landscape outpainting: 1024x1024 → 1792x1024")
+
             # Step 1: Extend 384px to the right
-            print(f"🎨 Step 1: Extending right 384px")
+            print("🎨 Step 1: Extending right 384px")
             right_strip = self._extend_direction(original_image, "right", 384, prompt)
-            
-            # Step 2: Extend 384px to the left  
-            print(f"🎨 Step 2: Extending left 384px")
+
+            # Step 2: Extend 384px to the left
+            print("🎨 Step 2: Extending left 384px")
             left_strip = self._extend_direction(original_image, "left", 384, prompt)
-            
+
             # Step 3: Assemble final image
-            print(f"🎨 Step 3: Assembling final image")
+            print("🎨 Step 3: Assembling final image")
             final_image = Image.new("RGBA", (1792, 1024))
-            
+
             # Paste left strip (0, 0)
             final_image.paste(left_strip, (0, 0))
-            # Paste original image (384, 0) 
+            # Paste original image (384, 0)
             final_image.paste(original_image, (384, 0))
             # Paste right strip (1408, 0)
             final_image.paste(right_strip, (1408, 0))
-            
+
             print(f"✅ Final landscape dimensions: {final_image.size}")
-            
+
             # Convert back to bytes
             result_buffer = BytesIO()
             final_image.save(result_buffer, format="PNG")
             return result_buffer.getvalue()
-            
+
         except Exception as e:
             print(f"❌ OpenAI outpainting failed: {e}")
             # Fallback to PIL-based extension
@@ -1286,56 +1330,66 @@ class CampaignGenerator:
         if self.dev_mode:
             # In dev mode, use the fallback method that properly extends the input image
             return self._extend_image_vertically_fallback(square_image_data, "9:16")
-        
+
         try:
             from PIL import Image
-            
+
             # Convert image data to PIL Image
             original_image = Image.open(BytesIO(square_image_data)).convert("RGBA")
             if original_image.size != (1024, 1024):
                 raise ValueError(f"Expected 1024x1024 image, got {original_image.size}")
-            
-            print(f"🎨 Starting portrait outpainting: 1024x1024 → 1024x1792")
-            
+
+            print("🎨 Starting portrait outpainting: 1024x1024 → 1024x1792")
+
             # Step 1: Extend 384px downward
-            print(f"🎨 Step 1: Extending down 384px")
+            print("🎨 Step 1: Extending down 384px")
             bottom_strip = self._extend_direction(original_image, "down", 384, prompt)
-            
-            # Step 2: Extend 384px upward  
-            print(f"🎨 Step 2: Extending up 384px")
+
+            # Step 2: Extend 384px upward
+            print("🎨 Step 2: Extending up 384px")
             top_strip = self._extend_direction(original_image, "up", 384, prompt)
-            
+
             # Step 3: Assemble final image
-            print(f"🎨 Step 3: Assembling final image")
+            print("🎨 Step 3: Assembling final image")
             final_image = Image.new("RGBA", (1024, 1792))
-            
+
             # Paste top strip (0, 0)
             final_image.paste(top_strip, (0, 0))
-            # Paste original image (0, 384) 
+            # Paste original image (0, 384)
             final_image.paste(original_image, (0, 384))
             # Paste bottom strip (0, 1408)
             final_image.paste(bottom_strip, (0, 1408))
-            
+
             print(f"✅ Final portrait dimensions: {final_image.size}")
-            
+
             # Convert back to bytes
             result_buffer = BytesIO()
             final_image.save(result_buffer, format="PNG")
             return result_buffer.getvalue()
-            
+
         except Exception as e:
             print(f"❌ OpenAI outpainting failed: {e}")
             # Fallback to PIL-based extension
             return self._extend_image_vertically_fallback(square_image_data, "9:16")
 
     def _save_generated_asset(
-        self, brief, product_name, aspect_ratio, image_url_or_data, prompt, generation_time, generation_run, language=None
+        self,
+        brief,
+        product_name,
+        aspect_ratio,
+        image_url_or_data,
+        prompt,
+        generation_time,
+        generation_run,
+        language=None,
     ):
         """Save generated asset from URL or direct image data to database and organized folder"""
         from .models import GeneratedAsset
 
         # Handle both URL and direct image data
-        if isinstance(image_url_or_data, str) and image_url_or_data.startswith(('http://', 'https://')):
+        if isinstance(image_url_or_data, str) and image_url_or_data.startswith(
+            ("http://", "https://")
+        ):
             # Download image from DALL-E URL
             response = requests.get(image_url_or_data)
             response.raise_for_status()
@@ -1364,24 +1418,31 @@ class CampaignGenerator:
             aspect_ratio=aspect_ratio,
             language=asset_language,
             defaults={
-                'brief': brief,
-                'ai_prompt': prompt,
-                'organized_file_path': organized_path,
-                'generation_time_seconds': generation_time,
-                'translated_campaign_message': campaign_message if asset_language.code != brief.primary_language.code else '',
-                'translation_status': 'translated' if asset_language.code != brief.primary_language.code else 'original',
-            }
+                "brief": brief,
+                "ai_prompt": prompt,
+                "organized_file_path": organized_path,
+                "generation_time_seconds": generation_time,
+                "translated_campaign_message": campaign_message
+                if asset_language.code != brief.primary_language.code
+                else "",
+                "translation_status": "translated"
+                if asset_language.code != brief.primary_language.code
+                else "original",
+            },
         )
-        
+
         # If asset already existed, update it with new data
         if not created:
             asset.ai_prompt = prompt
             asset.organized_file_path = organized_path
             asset.generation_time_seconds = generation_time
             # Update translation if this is a non-primary language and we don't have a translation yet
-            if asset_language.code != brief.primary_language.code and not asset.translated_campaign_message:
+            if (
+                asset_language.code != brief.primary_language.code
+                and not asset.translated_campaign_message
+            ):
                 asset.translated_campaign_message = campaign_message
-                asset.translation_status = 'translated'
+                asset.translation_status = "translated"
             asset.save()
 
         # Also save to Django media field for web display
@@ -1395,51 +1456,64 @@ class CampaignGenerator:
     def _create_reference_image_assets(self, brief, generation_run):
         """
         Create assets from the uploaded reference image for all products and languages.
-        
+
         The reference image is treated as the first asset with 0 generation time.
         """
         from .models import GeneratedAsset
         from .utils import get_reference_image_metadata
-        
+
         assets = []
-        
+
         # Get metadata about the reference image processing
         metadata = get_reference_image_metadata(brief.reference_image)
-        
+
         # Load the reference image
         reference_image = Image.open(brief.reference_image.path)
-        
+
         # Create reference assets for each product and language
         for language in brief.get_all_languages():
             for product in brief.products:
                 product_name = product.get("name", "Product")
-                
+
                 # Convert reference image to bytes for processing
                 reference_buffer = BytesIO()
-                reference_image.save(reference_buffer, format='JPEG', quality=90)
+                reference_image.save(reference_buffer, format="JPEG", quality=90)
                 reference_image_data = reference_buffer.getvalue()
-                
+
                 # Create reference assets for all aspect ratios using the same high-quality extension as AI images
                 aspect_ratios = [
                     ("1:1", reference_image_data),  # Original square - no extension needed
-                    ("16:9", self._outpaint_landscape(reference_image_data, f"Professional background for {product_name} product campaign")),  # Landscape
-                    ("9:16", self._outpaint_vertical(reference_image_data, f"Professional background for {product_name} product campaign"))     # Portrait
+                    (
+                        "16:9",
+                        self._outpaint_landscape(
+                            reference_image_data,
+                            f"Professional background for {product_name} product campaign",
+                        ),
+                    ),  # Landscape
+                    (
+                        "9:16",
+                        self._outpaint_vertical(
+                            reference_image_data,
+                            f"Professional background for {product_name} product campaign",
+                        ),
+                    ),  # Portrait
                 ]
-                
+
                 for aspect_ratio, extended_image_data in aspect_ratios:
-                    
                     # Get translated campaign message for this language
                     campaign_message = self._get_translated_message(brief, language)
-                    
+
                     # Convert extended image data back to PIL Image for text overlay
                     extended_image = Image.open(BytesIO(extended_image_data))
-                    
+
                     # Add text overlay to the extended reference image for this aspect ratio
-                    final_image = self._add_text_overlay(extended_image, campaign_message, aspect_ratio)
-                    
+                    final_image = self._add_text_overlay(
+                        extended_image, campaign_message, aspect_ratio
+                    )
+
                     # Save to organized folder structure
                     organized_path = self._save_organized(final_image, product_name, aspect_ratio)
-                    
+
                     # Create database record for reference asset
                     asset = GeneratedAsset.objects.create(
                         brief=brief,
@@ -1450,17 +1524,25 @@ class CampaignGenerator:
                         ai_prompt=f"Reference image: {metadata['processing_note']}",
                         generation_time_seconds=0.0,  # Reference images have 0 generation time
                         organized_file_path=organized_path,
-                        translated_campaign_message=campaign_message if language.code != brief.primary_language.code else '',
-                        translation_status='translated' if language.code != brief.primary_language.code else 'original',
+                        translated_campaign_message=campaign_message
+                        if language.code != brief.primary_language.code
+                        else "",
+                        translation_status="translated"
+                        if language.code != brief.primary_language.code
+                        else "original",
                         is_reference_image=True,
-                        reference_image_note=metadata['processing_note']
+                        reference_image_note=metadata["processing_note"],
                     )
-                    
+
                     # Also save to Django media field for web display
                     filename = f"ref_{slugify(product_name)}_{aspect_ratio.replace(':', 'x')}_{int(time.time())}.jpg"
-                    asset.image_file.save(filename, BytesIO(self._image_to_bytes(final_image)), save=True)
-                    
+                    asset.image_file.save(
+                        filename, BytesIO(self._image_to_bytes(final_image)), save=True
+                    )
+
                     assets.append(asset)
-                    print(f"✅ Created reference asset: {product_name} ({aspect_ratio}) in {language.name}")
-        
+                    print(
+                        f"✅ Created reference asset: {product_name} ({aspect_ratio}) in {language.name}"
+                    )
+
         return assets

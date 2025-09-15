@@ -9,7 +9,7 @@ class LanguageAdmin(admin.ModelAdmin):
     list_filter = ["direction", "script", "is_active"]
     search_fields = ["name", "code", "native_name"]
     readonly_fields = ["created_at", "updated_at"]
-    
+
     fieldsets = (
         ("Basic Info", {"fields": ("code", "name", "native_name", "is_active")}),
         ("Text Properties", {"fields": ("direction", "script")}),
@@ -28,7 +28,10 @@ class BriefAdmin(admin.ModelAdmin):
     fieldsets = (
         ("Campaign Details", {"fields": ("title", "campaign_message")}),
         ("Target Information", {"fields": ("target_region", "target_audience")}),
-        ("Languages", {"fields": ("primary_language", "supported_languages", "translation_config")}),
+        (
+            "Languages",
+            {"fields": ("primary_language", "supported_languages", "translation_config")},
+        ),
         (
             "Products",
             {
@@ -43,6 +46,7 @@ class BriefAdmin(admin.ModelAdmin):
     def product_count(self, obj):
         """Return the number of products in this brief"""
         return len(obj.products) if obj.products else 0
+
     product_count.short_description = "Products"
 
 
@@ -59,19 +63,56 @@ class GeneratedAssetAdmin(admin.ModelAdmin):
         "generation_time_seconds",
         "created_at",
     ]
-    list_filter = ["aspect_ratio", "language", "translation_status", "brief", "generation_run", "is_reference_image", "created_at"]
+    list_filter = [
+        "aspect_ratio",
+        "language",
+        "translation_status",
+        "brief",
+        "generation_run",
+        "is_reference_image",
+        "created_at",
+    ]
     search_fields = ["product_name", "brief__title", "ai_prompt", "translated_campaign_message"]
     readonly_fields = ["created_at", "file_size_mb", "organized_folder", "get_display_name"]
 
     fieldsets = (
-        ("Asset Details", {"fields": ("brief", "generation_run", "product_name", "aspect_ratio", "image_file")}),
-        ("Language & Translation", {"fields": ("language", "translation_status", "original_asset", "translated_campaign_message")}),
-        ("Generation Info", {"fields": ("ai_prompt", "generation_time_seconds", "is_reference_image", "reference_image_note")}),
+        (
+            "Asset Details",
+            {"fields": ("brief", "generation_run", "product_name", "aspect_ratio", "image_file")},
+        ),
+        (
+            "Language & Translation",
+            {
+                "fields": (
+                    "language",
+                    "translation_status",
+                    "original_asset",
+                    "translated_campaign_message",
+                )
+            },
+        ),
+        (
+            "Generation Info",
+            {
+                "fields": (
+                    "ai_prompt",
+                    "generation_time_seconds",
+                    "is_reference_image",
+                    "reference_image_note",
+                )
+            },
+        ),
         (
             "File Organization",
             {"fields": ("organized_file_path", "organized_folder"), "classes": ("collapse",)},
         ),
-        ("Metadata", {"fields": ("created_at", "file_size_mb", "get_display_name"), "classes": ("collapse",)}),
+        (
+            "Metadata",
+            {
+                "fields": ("created_at", "file_size_mb", "get_display_name"),
+                "classes": ("collapse",),
+            },
+        ),
     )
 
 
@@ -144,7 +185,14 @@ class GenerationSessionAdmin(admin.ModelAdmin):
 
 @admin.register(DemoBrief)
 class DemoBriefAdmin(admin.ModelAdmin):
-    list_display = ["title", "target_region", "primary_language", "product_count", "is_active", "created_at"]
+    list_display = [
+        "title",
+        "target_region",
+        "primary_language",
+        "product_count",
+        "is_active",
+        "created_at",
+    ]
     list_filter = ["target_region", "primary_language", "is_active", "created_at"]
     search_fields = ["title", "target_region", "campaign_message", "description"]
     readonly_fields = ["created_at", "updated_at"]
@@ -154,7 +202,10 @@ class DemoBriefAdmin(admin.ModelAdmin):
         ("Demo Brief Details", {"fields": ("title", "description", "is_active")}),
         ("Campaign Details", {"fields": ("campaign_message",)}),
         ("Target Information", {"fields": ("target_region", "target_audience")}),
-        ("Languages", {"fields": ("primary_language", "supported_languages", "translation_config")}),
+        (
+            "Languages",
+            {"fields": ("primary_language", "supported_languages", "translation_config")},
+        ),
         (
             "Products",
             {
@@ -168,4 +219,5 @@ class DemoBriefAdmin(admin.ModelAdmin):
     def product_count(self, obj):
         """Return the number of products in this demo brief"""
         return len(obj.products) if obj.products else 0
+
     product_count.short_description = "Products"

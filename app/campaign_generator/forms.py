@@ -4,7 +4,7 @@ import yaml
 from django import forms
 
 from .models import Brief, Language
-from .utils import normalize_reference_image, get_reference_image_metadata
+from .utils import normalize_reference_image
 
 
 class BriefForm(forms.ModelForm):
@@ -30,25 +30,32 @@ class BriefForm(forms.ModelForm):
         help_text="JSON array of products with name and type fields",
         label="Products (JSON)",
     )
-    
+
     additional_languages = forms.ModelMultipleChoiceField(
-        queryset=Language.objects.filter(is_active=True).exclude(code='en'),
+        queryset=Language.objects.filter(is_active=True).exclude(code="en"),
         widget=forms.CheckboxSelectMultiple,
         required=False,
         help_text="Select additional languages for this campaign (English is included by default)",
-        label="Additional Languages"
+        label="Additional Languages",
     )
-    
+
     reference_image = forms.ImageField(
         required=False,
         help_text="Optional reference image that will be normalized to 1024x1024 pixels and used as the first generated asset",
         label="Reference Image",
-        widget=forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*"})
+        widget=forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*"}),
     )
 
     class Meta:
         model = Brief
-        fields = ["title", "target_region", "target_audience", "campaign_message", "primary_language", "reference_image"]
+        fields = [
+            "title",
+            "target_region",
+            "target_audience",
+            "campaign_message",
+            "primary_language",
+            "reference_image",
+        ]
         widgets = {
             "title": forms.TextInput(
                 attrs={"placeholder": "Pacific Pulse Energy Drink Launch", "class": "form-control"}
@@ -107,7 +114,7 @@ class BriefForm(forms.ModelForm):
         """Save brief with parsed products JSON, languages, and normalized reference image"""
         brief = super().save(commit=False)
         brief.products = self.cleaned_data["products_json"]
-        
+
         # Process reference image if provided
         reference_image = self.cleaned_data.get("reference_image")
         if reference_image:
@@ -135,12 +142,12 @@ class JSONBriefUploadForm(forms.Form):
         help_text="Upload a JSON or YAML file containing campaign brief",
         widget=forms.FileInput(attrs={"accept": ".json,.yaml,.yml", "class": "form-control"}),
     )
-    
+
     reference_image = forms.ImageField(
         required=False,
         help_text="Optional reference image that will be normalized to 1024x1024 pixels and used as the first generated asset",
         label="Reference Image",
-        widget=forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*"})
+        widget=forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*"}),
     )
 
     def clean_brief_file(self):
@@ -186,7 +193,7 @@ class JSONBriefUploadForm(forms.Form):
     def save(self):
         """Create Brief instance from uploaded file data"""
         data = self.cleaned_data["brief_file"]
-        
+
         # Handle primary language - can be ID or code
         primary_language = None
         if "primary_language" in data:
@@ -197,16 +204,16 @@ class JSONBriefUploadForm(forms.Form):
                     primary_language = Language.objects.get(code=primary_lang_value, is_active=True)
                 except Language.DoesNotExist:
                     # Fallback to English if code not found
-                    primary_language = Language.objects.get(code='en')
+                    primary_language = Language.objects.get(code="en")
             else:
                 # Language ID provided (backward compatibility)
                 try:
                     primary_language = Language.objects.get(id=primary_lang_value, is_active=True)
                 except Language.DoesNotExist:
-                    primary_language = Language.objects.get(code='en')
+                    primary_language = Language.objects.get(code="en")
         else:
             # Default to English
-            primary_language = Language.objects.get(code='en')
+            primary_language = Language.objects.get(code="en")
 
         brief = Brief.objects.create(
             title=data["title"],
@@ -214,9 +221,9 @@ class JSONBriefUploadForm(forms.Form):
             target_audience=data["target_audience"],
             campaign_message=data["campaign_message"],
             products=data["products"],
-            primary_language=primary_language
+            primary_language=primary_language,
         )
-        
+
         # Process reference image if provided
         reference_image = self.cleaned_data.get("reference_image")
         if reference_image:
@@ -229,7 +236,7 @@ class JSONBriefUploadForm(forms.Form):
                 # If image processing fails, delete the brief and raise error
                 brief.delete()
                 raise forms.ValidationError(f"Failed to process reference image: {str(e)}")
-        
+
         # Handle additional languages - can be IDs or codes
         if "additional_languages" in data and data["additional_languages"]:
             additional_langs = []
@@ -248,7 +255,7 @@ class JSONBriefUploadForm(forms.Form):
                         additional_langs.append(lang)
                     except Language.DoesNotExist:
                         pass  # Skip invalid IDs
-            
+
             if additional_langs:
                 brief.supported_languages.set(additional_langs)
 

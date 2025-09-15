@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.utils.text import slugify
 from versatileimagefield.fields import VersatileImageField
@@ -6,50 +5,58 @@ from versatileimagefield.fields import VersatileImageField
 
 class Language(models.Model):
     """Language support for multilingual campaigns"""
-    
+
     TEXT_DIRECTIONS = [
-        ('ltr', 'Left-to-Right'),
-        ('rtl', 'Right-to-Left'),
-        ('ttb', 'Top-to-Bottom'),
+        ("ltr", "Left-to-Right"),
+        ("rtl", "Right-to-Left"),
+        ("ttb", "Top-to-Bottom"),
     ]
-    
+
     SCRIPT_TYPES = [
-        ('latin', 'Latin'),
-        ('hiragana', 'Hiragana'),
-        ('katakana', 'Katakana'),
-        ('han', 'Han (Chinese/Japanese)'),
-        ('hangul', 'Hangul'),
-        ('arabic', 'Arabic'),
-        ('hebrew', 'Hebrew'),
-        ('cyrillic', 'Cyrillic'),
+        ("latin", "Latin"),
+        ("hiragana", "Hiragana"),
+        ("katakana", "Katakana"),
+        ("han", "Han (Chinese/Japanese)"),
+        ("hangul", "Hangul"),
+        ("arabic", "Arabic"),
+        ("hebrew", "Hebrew"),
+        ("cyrillic", "Cyrillic"),
     ]
-    
-    code = models.CharField(max_length=5, unique=True, help_text="ISO 639-1 language code (e.g., 'en', 'es', 'ja')")
-    name = models.CharField(max_length=50, help_text="Language name in English (e.g., 'English', 'Spanish', 'Japanese')")
-    native_name = models.CharField(max_length=50, blank=True, help_text="Language name in native script (e.g., '日本語')")
+
+    code = models.CharField(
+        max_length=5, unique=True, help_text="ISO 639-1 language code (e.g., 'en', 'es', 'ja')"
+    )
+    name = models.CharField(
+        max_length=50, help_text="Language name in English (e.g., 'English', 'Spanish', 'Japanese')"
+    )
+    native_name = models.CharField(
+        max_length=50, blank=True, help_text="Language name in native script (e.g., '日本語')"
+    )
     direction = models.CharField(
         max_length=10,
         choices=TEXT_DIRECTIONS,
-        default='ltr',
-        help_text="Text direction for this language"
+        default="ltr",
+        help_text="Text direction for this language",
     )
     script = models.CharField(
         max_length=20,
         choices=SCRIPT_TYPES,
-        default='latin',
-        help_text="Primary script type for this language"
+        default="latin",
+        help_text="Primary script type for this language",
     )
-    is_active = models.BooleanField(default=True, help_text="Whether this language is available for campaigns")
-    
+    is_active = models.BooleanField(
+        default=True, help_text="Whether this language is available for campaigns"
+    )
+
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return f"{self.name} ({self.code})"
-    
+
     class Meta:
-        ordering = ['name']
+        ordering = ["name"]
 
 
 class Brief(models.Model):
@@ -65,30 +72,28 @@ class Brief(models.Model):
 
     # Multilingual fields
     primary_language = models.ForeignKey(
-        Language, 
-        on_delete=models.PROTECT, 
-        related_name='primary_briefs',
+        Language,
+        on_delete=models.PROTECT,
+        related_name="primary_briefs",
         default=1,  # English by default
-        help_text="Primary language for this campaign"
+        help_text="Primary language for this campaign",
     )
     supported_languages = models.ManyToManyField(
         Language,
-        related_name='supported_briefs',
+        related_name="supported_briefs",
         blank=True,
-        help_text="Additional languages to generate assets for"
+        help_text="Additional languages to generate assets for",
     )
     translation_config = models.JSONField(
-        default=dict,
-        blank=True,
-        help_text="Translation settings and overrides"
+        default=dict, blank=True, help_text="Translation settings and overrides"
     )
-    
+
     # Reference image for asset generation
     reference_image = VersatileImageField(
         upload_to="reference_images/",
         blank=True,
         null=True,
-        help_text="Optional reference image that will be normalized to 1024x1024 and used as the first generated asset"
+        help_text="Optional reference image that will be normalized to 1024x1024 and used as the first generated asset",
     )
 
     # Metadata
@@ -130,32 +135,28 @@ class DemoBrief(models.Model):
 
     # Multilingual fields - same as Brief
     primary_language = models.ForeignKey(
-        Language, 
-        on_delete=models.PROTECT, 
-        related_name='primary_demo_briefs',
+        Language,
+        on_delete=models.PROTECT,
+        related_name="primary_demo_briefs",
         default=1,  # English by default
-        help_text="Primary language for this campaign"
+        help_text="Primary language for this campaign",
     )
     supported_languages = models.ManyToManyField(
         Language,
-        related_name='supported_demo_briefs',
+        related_name="supported_demo_briefs",
         blank=True,
-        help_text="Additional languages to generate assets for"
+        help_text="Additional languages to generate assets for",
     )
     translation_config = models.JSONField(
-        default=dict,
-        blank=True,
-        help_text="Translation settings and overrides"
+        default=dict, blank=True, help_text="Translation settings and overrides"
     )
-    
+
     # Demo-specific fields
     description = models.TextField(
-        blank=True,
-        help_text="Description of this demo brief for selection UI"
+        blank=True, help_text="Description of this demo brief for selection UI"
     )
     is_active = models.BooleanField(
-        default=True,
-        help_text="Whether this demo brief appears in the selection UI"
+        default=True, help_text="Whether this demo brief appears in the selection UI"
     )
 
     # Metadata
@@ -170,22 +171,22 @@ class DemoBrief(models.Model):
         all_languages = [self.primary_language]
         all_languages.extend(self.supported_languages.all())
         return list(set(all_languages))  # Remove duplicates
-    
+
     def to_brief_data(self):
         """Convert to dict format for copying to Brief form"""
         return {
-            'title': self.title,
-            'target_region': self.target_region,
-            'target_audience': self.target_audience,
-            'campaign_message': self.campaign_message,
-            'products': self.products,
-            'primary_language': self.primary_language.id,
-            'supported_languages': [lang.id for lang in self.supported_languages.all()],
-            'translation_config': self.translation_config
+            "title": self.title,
+            "target_region": self.target_region,
+            "target_audience": self.target_audience,
+            "campaign_message": self.campaign_message,
+            "products": self.products,
+            "primary_language": self.primary_language.id,
+            "supported_languages": [lang.id for lang in self.supported_languages.all()],
+            "translation_config": self.translation_config,
         }
 
     class Meta:
-        ordering = ['title']
+        ordering = ["title"]
 
 
 class GeneratedAsset(models.Model):
@@ -196,16 +197,18 @@ class GeneratedAsset(models.Model):
         ("9:16", "Vertical Story (9:16)"),
         ("16:9", "Horizontal Video (16:9)"),
     ]
-    
+
     TRANSLATION_STATUS_CHOICES = [
-        ('original', 'Original'),
-        ('translated', 'Translated'),
-        ('failed', 'Translation Failed'),
-        ('pending', 'Translation Pending'),
+        ("original", "Original"),
+        ("translated", "Translated"),
+        ("failed", "Translation Failed"),
+        ("pending", "Translation Pending"),
     ]
 
     brief = models.ForeignKey(Brief, on_delete=models.CASCADE, related_name="generated_assets")
-    generation_run = models.ForeignKey('GenerationRun', on_delete=models.CASCADE, related_name='assets')
+    generation_run = models.ForeignKey(
+        "GenerationRun", on_delete=models.CASCADE, related_name="assets"
+    )
     product_name = models.CharField(max_length=200)
     aspect_ratio = models.CharField(max_length=10, choices=ASPECT_RATIOS)
 
@@ -214,24 +217,23 @@ class GeneratedAsset(models.Model):
         Language,
         on_delete=models.PROTECT,
         default=1,  # English by default
-        help_text="Language for this asset"
+        help_text="Language for this asset",
     )
     original_asset = models.ForeignKey(
-        'self',
+        "self",
         null=True,
         blank=True,
         on_delete=models.CASCADE,
-        help_text="Link to original asset if this is a translation"
+        help_text="Link to original asset if this is a translation",
     )
     translation_status = models.CharField(
         max_length=20,
         choices=TRANSLATION_STATUS_CHOICES,
-        default='original',
-        help_text="Translation status of this asset"
+        default="original",
+        help_text="Translation status of this asset",
     )
     translated_campaign_message = models.TextField(
-        blank=True,
-        help_text="Translated campaign message for this language"
+        blank=True, help_text="Translated campaign message for this language"
     )
 
     # AI generation details
@@ -243,16 +245,15 @@ class GeneratedAsset(models.Model):
     organized_file_path = models.CharField(
         max_length=500, help_text="Path in organized output structure"
     )
-    
+
     # Reference image metadata
     is_reference_image = models.BooleanField(
-        default=False,
-        help_text="True if this asset was created from an uploaded reference image"
+        default=False, help_text="True if this asset was created from an uploaded reference image"
     )
     reference_image_note = models.CharField(
         max_length=200,
         blank=True,
-        help_text="Note about the reference image processing (e.g., 'Normalized from uploaded reference')"
+        help_text="Note about the reference image processing (e.g., 'Normalized from uploaded reference')",
     )
 
     # Metadata
@@ -281,46 +282,46 @@ class GeneratedAsset(models.Model):
         ordering = ["-created_at"]
         unique_together = ["generation_run", "product_name", "aspect_ratio", "language"]
         indexes = [
-            models.Index(fields=['language', 'aspect_ratio']),
-            models.Index(fields=['brief', 'language']),
-            models.Index(fields=['translation_status']),
+            models.Index(fields=["language", "aspect_ratio"]),
+            models.Index(fields=["brief", "language"]),
+            models.Index(fields=["translation_status"]),
         ]
 
 
 class GenerationRun(models.Model):
     """Track generation runs - each run is independent and can be retried"""
-    
+
     brief = models.ForeignKey(Brief, on_delete=models.CASCADE, related_name="generation_runs")
-    
+
     # Simple run identification
     run_index = models.IntegerField(help_text="Sequential run number for this brief")
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
-    
+
     # Results
     success = models.BooleanField(default=False)
     error_message = models.TextField(blank=True)
     assets_generated = models.IntegerField(default=0)
     total_generation_time = models.FloatField(default=0.0)
     estimated_cost_usd = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
-    
+
     def __str__(self):
         status = "✅ Success" if self.success else "❌ Failed"
         return f"Run #{self.run_index} - {status} - {self.brief.title}"
-    
+
     @property
     def is_current(self):
         """Is this the most recent run for this brief?"""
-        latest_run = GenerationRun.objects.filter(brief=self.brief).order_by('-run_index').first()
+        latest_run = GenerationRun.objects.filter(brief=self.brief).order_by("-run_index").first()
         return latest_run and self.run_index == latest_run.run_index
-    
+
     @property
     def duration_seconds(self):
         """Calculate run duration"""
         if self.completed_at and self.started_at:
             return (self.completed_at - self.started_at).total_seconds()
         return 0
-    
+
     class Meta:
         ordering = ["-started_at"]
         unique_together = ["brief", "run_index"]
@@ -328,7 +329,7 @@ class GenerationRun(models.Model):
 
 class GenerationSession(models.Model):
     """Track generation sessions for logging/reporting - DEPRECATED, use GenerationRun"""
-    
+
     brief = models.ForeignKey(Brief, on_delete=models.CASCADE, related_name="generation_sessions")
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
