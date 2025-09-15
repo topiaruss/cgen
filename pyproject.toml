@@ -2,6 +2,7 @@
 name = "campaign-generator"
 version = "0.1.0"
 description = "GenAI-powered campaign asset generation for multiple aspect ratios"
+license = {file = "LICENSE"}
 requires-python = ">=3.11"
 dependencies = [
   "django>=5.0.0",
