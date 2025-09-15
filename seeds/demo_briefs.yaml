@@ -1,0 +1,142 @@
+# demo_briefs.yaml
+
+scenarios:
+  - name: "Pacific Pulse Energy Drink"
+    category: "Launch"
+    subcategory: "CPG New Product"
+    template: "Launch – CPG New Product"
+    style_lock:
+      voice: "bright, kinetic, coastal slang"
+      reading_level: "8th grade"
+      palette: ["aqua", "coral", "sunshine yellow"]
+      typography: "rounded sans-serif, playful headers"
+    briefs:
+      - title: "Initial Launch Brief"
+        business_goal: "Introduce Pacific Pulse to bilingual Pacific Coast audiences, building brand awareness and trial."
+        audience: "18–30, urban, bilingual EN/ES, health-conscious but fun-seeking."
+        message_pillars:
+          - "Natural plant-based energy."
+          - "Flavor tied to coastal lifestyle."
+          - "Social & inclusive vibe."
+        non_negotiables:
+          - "Must disclose caffeine content."
+          - "Must not imply medical/therapeutic benefits."
+          - "Bilingual parity (EN/ES)."
+        variants:
+          - id: v1
+            copy_headline: "Energía natural para tu día 🌞"
+            copy_subhead: "Plant-based boost, coastal cool."
+            image_prompt: "vibrant can of energy drink on a sunny California beach, aqua/coral color scheme"
+            panel_critiques:
+              - persona: "Voice_EN"
+                feedback: "Energetic and fun, but could clarify caffeine content."
+              - persona: "Voice_ES"
+                feedback: "Good parity with English, natural flow."
+            tier: "A"
+            flags:
+              - reason_code: "D-DISCLOSURE"
+                message: "Missing caffeine disclosure."
+                suggested_fix: "Add: 'Contains 80mg caffeine per can.'"
+          - id: v2
+            copy_headline: "Ride the wave, feel the pulse 🌊"
+            copy_subhead: "Coastal energy, naturally powered."
+            image_prompt: "surfer carrying eco-friendly drink can, aqua and coral color palette"
+            panel_critiques:
+              - persona: "Voice_EN"
+                feedback: "Very catchy; cultural resonance is strong."
+            tier: "S"
+            flags: []
+        ab_test_plan:
+          hypothesis: "Variants with coastal imagery outperform generic product shots."
+          cells:
+            - variant: v1
+              placement: "IG Stories"
+              kpi: "Swipe-up CTR > 3%"
+              traffic_split: 40
+            - variant: v2
+              placement: "IG Stories"
+              kpi: "Swipe-up CTR > 3%"
+              traffic_split: 60
+        trust_register:
+          claims:
+            - text: "Plant-based energy"
+              evidence: "Link to ingredient list and USDA certification"
+          rights:
+            - asset: "Stock surfer image"
+              license: "Adobe Stock #12345"
+              constraints: "Editorial use only"
+        renditions:
+          - channel: "IG Stories"
+            status: "green"
+          - channel: "Bus-Shelter Poster"
+            status: "pending CMYK proof"
+
+  - name: "Coast & Culture Week"
+    category: "Event"
+    subcategory: "Cultural Festival"
+    template: "Event – Cultural Festival"
+    style_lock:
+      voice: "warm, inclusive, celebratory"
+      reading_level: "10th grade"
+      palette: ["vivid magenta", "sun gold", "earth green"]
+      typography: "handwritten script accents + clean sans body"
+    briefs:
+      - title: "Festival Kickoff Brief"
+        business_goal: "Drive attendance and positive community sentiment."
+        audience: "Families, students, cultural explorers in US/MX border cities."
+        message_pillars:
+          - "Celebration of diversity & heritage."
+          - "Free community access."
+          - "Safe, family-friendly fun."
+        non_negotiables:
+          - "Dates and times must be accurate."
+          - "Respect for cultural traditions."
+          - "Accessibility info included."
+        variants:
+          - id: v3
+            copy_headline: "Celebrate the Coast, Celebrate Us 🎉"
+            copy_subhead: "A week of culture, food, and music for everyone."
+            image_prompt: "street festival with diverse families, bright decorations, magenta and gold tones"
+            panel_critiques:
+              - persona: "Voice_ES"
+                feedback: "Good bilingual balance, festive."
+            tier: "S"
+            flags:
+              - reason_code: "S-SENSITIVITY"
+                message: "Avoid using Día de los Muertos motifs outside context."
+                suggested_fix: "Switch to universal festival symbols (music, food)."
+
+  - name: "EcoBackpack Launch"
+    category: "Product"
+    subcategory: "Back-to-School Sustainable Gear"
+    template: "Product – Back-to-School Sustainable Gear"
+    style_lock:
+      voice: "practical, hopeful, forward-looking"
+      reading_level: "9th grade"
+      palette: ["navy", "lime green", "white"]
+      typography: "bold slab serif headlines, clean sans body"
+    briefs:
+      - title: "Back-to-School Brief"
+        business_goal: "Promote sustainable backpacks during back-to-school season."
+        audience: "Parents (30–50) and students (13–21), eco-conscious, price-sensitive."
+        message_pillars:
+          - "Durable + affordable."
+          - "Made from recycled ocean plastic."
+          - "Better for planet and future generations."
+        non_negotiables:
+          - "Must not overstate sustainability claims."
+          - "Include product warranty statement."
+          - "Must show backpack in real-world context."
+        variants:
+          - id: v4
+            copy_headline: "Tough on books, gentle on Earth 🌍"
+            copy_subhead: "Built from recycled ocean plastic."
+            image_prompt: "teenager walking to school with eco-backpack, navy and lime palette"
+            panel_critiques:
+              - persona: "Voice_EN"
+                feedback: "Positive, but 'gentle on Earth' may be flagged as greenwashing."
+            tier: "A"
+            flags:
+              - reason_code: "C-UNSUPPORTED"
+                message: "Environmental claim lacks citation."
+                suggested_fix: "Link to recycling certification."

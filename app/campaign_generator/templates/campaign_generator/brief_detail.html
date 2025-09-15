@@ -1,0 +1,255 @@
+{% extends 'campaign_generator/base.html' %}
+
+{% block title %}{{ brief_title }} - Campaign Brief{% endblock %}
+
+{% block content %}
+<!-- Brief Header -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>{{ brief_title }}</h2>
+        <p class="lead">{{ brief_message }}</p>
+    </div>
+    <div class="col-md-4 text-end">
+        {% if can_generate %}
+        <a href="{{ generate_url }}" class="btn btn-success me-2">
+            🎨 Generate Assets
+        </a>
+        {% endif %}
+        {% if can_download %}
+        <a href="{{ download_url }}" class="btn btn-primary">
+            <i data-feather="download"></i> Download ZIP
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Brief Details -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Campaign Details</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Target Region:</strong> {{ target_region }}</p>
+                <p><strong>Target Audience:</strong> {{ target_audience }}</p>
+                <p><strong>Campaign Message:</strong> {{ brief_message }}</p>
+                <p><strong>Languages:</strong> {{ primary_language }}{% if additional_languages %},
+                    {{ additional_languages|join:", " }}{% endif %}</p>
+                <p><strong>Created:</strong> {{ created_date }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Products ({{ products|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% for product in products %}
+                <div class="mb-2">
+                    <strong>{{ product.name }}</strong>
+                    {% if product.type %}<small class="text-muted">({{ product.type }})</small>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Generation Status -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Asset Generation Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3 class="text-primary">{{ actual_asset_count }}</h3>
+                            <p class="text-muted">Generated Assets</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3 class="text-secondary">{{ expected_asset_count }}</h3>
+                            <p class="text-muted">Expected Assets</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        {% if actual_asset_count == expected_asset_count %}
+                        <div class="alert alert-success mb-0">
+                            ✅ All assets generated successfully!
+                        </div>
+                        {% elif actual_asset_count > 0 %}
+                        <div class="alert alert-warning mb-0">
+                            ⚠️ Partial generation: {{ actual_asset_count }}/{{ expected_asset_count }} assets
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info mb-0">
+                            🎨 Ready to generate {{ expected_asset_count }} assets
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Generated Assets -->
+{% if assets_by_product %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h4>Generated Assets</h4>
+        {% for product_name, languages in assets_by_product.items %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>{{ product_name }}</h5>
+            </div>
+            <div class="card-body">
+                {% for language_code, product_assets in languages.items %}
+                <div class="mb-4">
+                    <h6 class="d-flex align-items-center mb-3">
+                        <span class="badge bg-info me-2">{{ language_code|upper }}</span>
+                        <span>{{ language_code|capfirst }} Assets</span>
+                    </h6>
+                    <div class="row">
+                        {% for ratio, asset in product_assets.items %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                {% if asset.has_image %}
+                                <img src="{{ asset.thumbnail_url }}" alt="{{ asset.title }} - {{ asset.aspect_ratio }}"
+                                    class="card-img-top" style="height: 200px; object-fit: cover;">
+                                {% endif %}
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ asset.aspect_ratio }} Format</h6>
+                                    <p class="card-text small text-muted">
+                                        <i class="fas fa-calendar-alt"></i> {{ asset.created_date }}
+                                        {% if asset.generation_time_seconds %}
+                                        <br><i class="fas fa-stopwatch"></i>
+                                        {{ asset.generation_time_seconds|floatformat:1 }}s
+                                        {% endif %}
+                                        <br><i class="fas fa-clock"></i> {{ asset.time_ago|timesince }} ago
+                                    </p>
+                                    <a href="{{ asset.detail_url }}" class="btn btn-sm btn-outline-primary">View
+                                        Details</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Generation Sessions -->
+{% if sessions %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Generation History</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Started</th>
+                                <th>Status</th>
+                                <th>Assets</th>
+                                <th>Duration</th>
+                                <th>Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in sessions %}
+                            <tr>
+                                <td><i class="fas fa-calendar-alt"></i> {{ session.started_at|date:"M j, Y \a\t g:i A"
+                                    }}</td>
+                                <td>
+                                    {% if session.success %}
+                                    <span class="badge bg-success">Success</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Failed</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ session.assets_generated }}</td>
+                                <td><i class="fas fa-stopwatch"></i> {{ session.total_generation_time|floatformat:1 }}s
+                                </td>
+                                <td>
+                                    {% if session.estimated_cost_usd %}
+                                    ${{ session.estimated_cost_usd|floatformat:3 }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Action Buttons -->
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex gap-2">
+            <a href="{% url 'home' %}" class="btn btn-secondary">← Back to Home</a>
+            {% if not assets %}
+            <form method="post" action="{{ generate_url }}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">🎨 Generate Assets</button>
+            </form>
+            {% else %}
+            <form method="post" action="{{ generate_url }}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning">🔄 Regenerate Assets</button>
+            </form>
+            <a href="{{ download_url }}" class="btn btn-primary"><i data-feather="download"></i> Download All Assets</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh generation status (simple polling)
+    function checkGenerationStatus() {
+        fetch('{% url "api_brief_status" brief_id %}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_generating) {
+                    // Show generating status
+                    console.log('Generation in progress...');
+                    setTimeout(checkGenerationStatus, 5000); // Check again in 5 seconds
+                } else {
+                    // Refresh page if new assets were generated
+                    if (data.generated_assets > {{ actual_asset_count }
+                }) {
+            location.reload();
+        }
+    }
+        })
+        .catch (error => console.log('Status check failed:', error));
+}
+
+    // Start status checking if generation is possible
+    document.addEventListener('DOMContentLoaded', function () {
+        // Could add real-time status checking here for better UX
+    });
+</script>
+{% endblock %}

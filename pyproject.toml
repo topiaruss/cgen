@@ -1,0 +1,76 @@
+[project]
+name = "swellstudio"
+version = "0.1.0"
+description = "Proof-of-concept demo app for briefs, variants, and personas"
+requires-python = ">=3.11"
+dependencies = [
+  "django",
+  "django-htmx",
+  "whitenoise",
+  "reportlab",
+  "pyyaml",
+  "psycopg2-binary",
+  "django-versatileimagefield",
+  "python-magic-bin>=0.4.14",
+  # FDE MVP Requirements
+  "openai>=1.0.0",
+  "Pillow>=10.0.0",
+  "requests>=2.28.0",
+  "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "ruff",
+  "pytest>=7.0.0,<8.0.0",
+  "pytest-django>=4.0.0",
+  "pytest-cov>=4.0.0",
+  "factory-boy",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [
+  ".venv",
+  "node_modules",
+  "staticfiles",
+  "media",
+  "exports",
+  "**/migrations",
+  "**/*.html",
+  "templates/**",
+]
+
+[tool.ruff.lint]
+select = [
+  "E",  # pycodestyle errors
+  "F",  # pyflakes
+  "W",  # pycodestyle warnings
+  "B",  # flake8-bugbear
+  "I",  # import sorting
+  "UP", # pyupgrade
+  "DJ", # flake8-django
+]
+ignore = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "config"]
+combine-as-imports = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+skip-magic-trailing-comma = false
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = "-v --tb=short --strict-markers"
+testpaths = ["app"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]

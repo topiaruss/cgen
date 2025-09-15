@@ -1,0 +1,330 @@
+{% extends 'campaign_generator/base.html' %}
+
+{% block title %}Upload Campaign Brief{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Navigation breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Upload Brief</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Page Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-5">Upload Campaign Brief</h1>
+                <p class="text-muted">Upload a JSON or YAML file containing your campaign brief details</p>
+            </div>
+
+            <!-- Upload Form -->
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-upload"></i> File Upload
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" data-testid="upload-brief-form">
+                        {% csrf_token %}
+
+                        <!-- File Upload Field -->
+                        <div class="mb-4">
+                            <label for="{{ form.brief_file.id_for_label }}" class="form-label fs-5">
+                                <i class="fas fa-file-alt"></i> Campaign Brief File
+                            </label>
+                            {{ form.brief_file }}
+                            {% if form.brief_file.help_text %}
+                            <div class="form-text">{{ form.brief_file.help_text }}</div>
+                            {% endif %}
+                            {% if form.brief_file.errors %}
+                            <div class="text-danger mt-2">
+                                {% for error in form.brief_file.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Format Examples -->
+                        <div class="alert alert-info" role="alert">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-info-circle"></i> Supported Formats
+                            </h6>
+                            <p class="mb-2">Upload files in JSON or YAML format with the following structure:</p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Required Fields:</strong>
+                                    <ul class="mb-0 mt-1">
+                                        <li><code>title</code> - Campaign name</li>
+                                        <li><code>products</code> - Array of products</li>
+                                        <li><code>target_region</code> - Target market</li>
+                                        <li><code>target_audience</code> - Target audience</li>
+                                        <li><code>campaign_message</code> - Marketing message</li>
+                                        <li><code>primary_language</code> - Primary language code (e.g., "en")</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Optional Fields:</strong>
+                                    <ul class="mb-2 mt-1">
+                                        <li><code>additional_languages</code> - Array of language codes (e.g., ["fr", "de"])</li>
+                                    </ul>
+                                    <strong>Accepted Extensions:</strong>
+                                    <ul class="mb-0 mt-1">
+                                        <li><code>.json</code> - JSON format</li>
+                                        <li><code>.yaml</code> - YAML format</li>
+                                        <li><code>.yml</code> - YAML format</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reference Image Field -->
+                        <div class="mb-4">
+                            <label for="{{ form.reference_image.id_for_label }}" class="form-label">
+                                <i class="fas fa-image"></i> {{ form.reference_image.label }}
+                            </label>
+                            {{ form.reference_image }}
+                            {% if form.reference_image.help_text %}
+                            <div class="form-text">{{ form.reference_image.help_text }}</div>
+                            {% endif %}
+                            {% if form.reference_image.errors %}
+                            <div class="text-danger mt-2">
+                                {% for error in form.reference_image.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'create_brief' %}" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-edit"></i> Manual Entry Instead
+                            </a>
+                            <button type="submit" class="btn btn-primary" data-testid="upload-brief-btn">
+                                <i class="fas fa-upload"></i> Upload Brief
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Example Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-code"></i> Example Brief Format
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="exampleTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="json-tab" data-bs-toggle="tab"
+                                data-bs-target="#json-example" type="button" role="tab">
+                                JSON Example
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="yaml-tab" data-bs-toggle="tab" data-bs-target="#yaml-example"
+                                type="button" role="tab">
+                                YAML Example
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content mt-3" id="exampleTabsContent">
+                        <!-- JSON Example -->
+                        <div class="tab-pane fade show active" id="json-example" role="tabpanel">
+                            <pre class="bg-light p-3 rounded"><code>{
+  "title": "Pacific Pulse Summer Campaign",
+  "products": [
+    {
+      "name": "Pacific Pulse Original",
+      "type": "Energy Drink"
+    },
+    {
+      "name": "Pacific Pulse Zero",
+      "type": "Sugar-Free Energy Drink"
+    }
+  ],
+  "target_region": "California Coast",
+  "target_audience": "Active millennials and Gen Z",
+  "campaign_message": "Fuel Your Adventure",
+  "primary_language": "en",
+  "additional_languages": ["fr", "de"]
+}</code></pre>
+                            <button class="btn btn-sm btn-outline-secondary"
+                                onclick="copyToClipboard('json-example code')">
+                                <i class="fas fa-copy"></i> Copy JSON
+                            </button>
+                        </div>
+
+                        <!-- YAML Example -->
+                        <div class="tab-pane fade" id="yaml-example" role="tabpanel">
+                            <pre class="bg-light p-3 rounded"><code>title: "Pacific Pulse Summer Campaign"
+products:
+  - name: "Pacific Pulse Original"
+    type: "Energy Drink"
+  - name: "Pacific Pulse Zero"
+    type: "Sugar-Free Energy Drink"
+target_region: "California Coast"
+target_audience: "Active millennials and Gen Z"
+campaign_message: "Fuel Your Adventure"
+primary_language: "en"
+additional_languages: ["fr", "de"]</code></pre>
+                            <button class="btn btn-sm btn-outline-secondary"
+                                onclick="copyToClipboard('yaml-example code')">
+                                <i class="fas fa-copy"></i> Copy YAML
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Language Reference -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-language"></i> Language Reference
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">Use these language codes in your brief files:</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Common Languages:</strong>
+                            <ul class="mb-0 mt-1">
+                                <li><code>"en"</code> - English</li>
+                                <li><code>"es"</code> - Spanish</li>
+                                <li><code>"fr"</code> - French</li>
+                                <li><code>"de"</code> - German</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Additional Languages:</strong>
+                            <ul class="mb-0 mt-1">
+                                <li><code>"it"</code> - Italian</li>
+                                <li><code>"pt"</code> - Portuguese</li>
+                                <li><code>"nl"</code> - Dutch</li>
+                                <li><code>"ja"</code> - Japanese</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-3 mb-0">
+                        <small><i class="fas fa-info-circle"></i> <strong>Note:</strong> Use standard ISO 639-1 language codes. English ("en") is typically used as the primary language.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6 class="card-title">Quick Actions</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <a href="{% url 'home' %}" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-home"></i> Dashboard
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{% url 'create_brief' %}" class="btn btn-outline-success w-100 mb-2">
+                                <i class="fas fa-edit"></i> Manual Entry
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{% url 'gallery' %}" class="btn btn-outline-info w-100 mb-2">
+                                <i class="fas fa-images"></i> View Gallery
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Copy to clipboard functionality
+    function copyToClipboard(elementSelector) {
+        const element = document.querySelector(elementSelector);
+        const text = element.textContent;
+
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(function () {
+                // Show temporary success message
+                const button = event.target.closest('button');
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                button.classList.remove('btn-outline-secondary');
+                button.classList.add('btn-success');
+
+                setTimeout(function () {
+                    button.innerHTML = originalText;
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-outline-secondary');
+                }, 2000);
+            });
+        } else {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            // Show success message
+            alert('Copied to clipboard!');
+        }
+    }
+
+    // File upload drag and drop functionality
+    document.addEventListener('DOMContentLoaded', function () {
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) {
+            const dropZone = fileInput.closest('.card-body');
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight(e) {
+                dropZone.classList.add('border-primary', 'bg-light');
+            }
+
+            function unhighlight(e) {
+                dropZone.classList.remove('border-primary', 'bg-light');
+            }
+
+            dropZone.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    // Trigger change event for any file validation
+                    fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

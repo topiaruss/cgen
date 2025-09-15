@@ -1,0 +1,142 @@
+[
+    {
+        "model": "campaign_generator.language",
+        "pk": 1,
+        "fields": {
+            "code": "en",
+            "name": "English",
+            "native_name": "English",
+            "direction": "ltr",
+            "script": "latin",
+            "is_active": true,
+            "created_at": "2025-09-14T01:45:00Z",
+            "updated_at": "2025-09-14T01:45:00Z"
+        }
+    },
+    {
+        "model": "campaign_generator.language",
+        "pk": 2,
+        "fields": {
+            "code": "es",
+            "name": "Spanish",
+            "native_name": "Español",
+            "direction": "ltr",
+            "script": "latin",
+            "is_active": true,
+            "created_at": "2025-09-14T01:45:00Z",
+            "updated_at": "2025-09-14T01:45:00Z"
+        }
+    },
+    {
+        "model": "campaign_generator.language",
+        "pk": 3,
+        "fields": {
+            "code": "fr",
+            "name": "French",
+            "native_name": "Français",
+            "direction": "ltr",
+            "script": "latin",
+            "is_active": true,
+            "created_at": "2025-09-14T01:45:00Z",
+            "updated_at": "2025-09-14T01:45:00Z"
+        }
+    },
+    {
+        "model": "campaign_generator.language",
+        "pk": 4,
+        "fields": {
+            "code": "de",
+            "name": "German",
+            "native_name": "Deutsch",
+            "direction": "ltr",
+            "script": "latin",
+            "is_active": true,
+            "created_at": "2025-09-14T01:45:00Z",
+            "updated_at": "2025-09-14T01:45:00Z"
+        }
+    },
+    {
+        "model": "campaign_generator.language",
+        "pk": 5,
+        "fields": {
+            "code": "it",
+            "name": "Italian",
+            "native_name": "Italiano",
+            "direction": "ltr",
+            "script": "latin",
+            "is_active": true,
+            "created_at": "2025-09-14T01:45:00Z",
+            "updated_at": "2025-09-14T01:45:00Z"
+        }
+    },
+    {
+        "model": "campaign_generator.language",
+        "pk": 6,
+        "fields": {
+            "code": "pt",
+            "name": "Portuguese",
+            "native_name": "Português",
+            "direction": "ltr",
+            "script": "latin",
+            "is_active": true,
+            "created_at": "2025-09-14T01:45:00Z",
+            "updated_at": "2025-09-14T01:45:00Z"
+        }
+    },
+    {
+        "model": "campaign_generator.language",
+        "pk": 7,
+        "fields": {
+            "code": "ja",
+            "name": "Japanese",
+            "native_name": "日本語",
+            "direction": "ttb",
+            "script": "hiragana",
+            "is_active": true,
+            "created_at": "2025-09-14T01:45:00Z",
+            "updated_at": "2025-09-14T01:45:00Z"
+        }
+    },
+    {
+        "model": "campaign_generator.language",
+        "pk": 8,
+        "fields": {
+            "code": "ko",
+            "name": "Korean",
+            "native_name": "한국어",
+            "direction": "ltr",
+            "script": "hangul",
+            "is_active": true,
+            "created_at": "2025-09-14T01:45:00Z",
+            "updated_at": "2025-09-14T01:45:00Z"
+        }
+    },
+    {
+        "model": "campaign_generator.language",
+        "pk": 9,
+        "fields": {
+            "code": "zh",
+            "name": "Chinese",
+            "native_name": "中文",
+            "direction": "ttb",
+            "script": "han",
+            "is_active": true,
+            "created_at": "2025-09-14T01:45:00Z",
+            "updated_at": "2025-09-14T01:45:00Z"
+        }
+    },
+    {
+        "model": "campaign_generator.language",
+        "pk": 10,
+        "fields": {
+            "code": "ar",
+            "name": "Arabic",
+            "native_name": "العربية",
+            "direction": "rtl",
+            "script": "arabic",
+            "is_active": false,
+            "created_at": "2025-09-14T01:45:00Z",
+            "updated_at": "2025-09-14T01:45:00Z"
+        }
+    }
+]

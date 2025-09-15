@@ -1,0 +1,238 @@
+{% extends 'campaign_generator/base.html' %}
+
+{% block title %}Create Brief - Creative Automation Pipeline{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h4>Create Campaign Brief</h4>
+                <p class="mb-0 text-muted">Define your campaign parameters for AI asset generation</p>
+            </div>
+            <div class="card-body">
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">Campaign Title</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                        <div class="text-danger small">{{ form.title.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.target_region.id_for_label }}" class="form-label">Target
+                                    Region/Market</label>
+                                {{ form.target_region }}
+                                {% if form.target_region.errors %}
+                                <div class="text-danger small">{{ form.target_region.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.target_audience.id_for_label }}" class="form-label">Target
+                                    Audience</label>
+                                {{ form.target_audience }}
+                                {% if form.target_audience.errors %}
+                                <div class="text-danger small">{{ form.target_audience.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.campaign_message.id_for_label }}" class="form-label">Campaign
+                            Message</label>
+                        {{ form.campaign_message }}
+                        <div class="form-text">The core message that will appear on generated assets</div>
+                        {% if form.campaign_message.errors %}
+                        <div class="text-danger small">{{ form.campaign_message.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.products_json.id_for_label }}" class="form-label">Products</label>
+                        {{ form.products_json }}
+                        <div class="form-text">{{ form.products_json.help_text }}</div>
+                        {% if form.products_json.errors %}
+                        <div class="text-danger small">{{ form.products_json.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.primary_language.id_for_label }}" class="form-label">Primary
+                                    Language</label>
+                                {{ form.primary_language }}
+                                {% if form.primary_language.errors %}
+                                <div class="text-danger small">{{ form.primary_language.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.additional_languages.id_for_label }}" class="form-label">
+                                    {{ form.additional_languages.label }}</label>
+                                {{ form.additional_languages }}
+                                <div class="form-text">{{ form.additional_languages.help_text }}</div>
+                                {% if form.additional_languages.errors %}
+                                <div class="text-danger small">{{ form.additional_languages.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reference Image -->
+                    <div class="mb-3">
+                        <label for="{{ form.reference_image.id_for_label }}" class="form-label">
+                            {{ form.reference_image.label }}</label>
+                        {{ form.reference_image }}
+                        <div class="form-text">{{ form.reference_image.help_text }}</div>
+                        {% if form.reference_image.errors %}
+                        <div class="text-danger small">{{ form.reference_image.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'home' %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Create Brief</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Demo Briefs Section (conditional) -->
+        {% if demo_briefs %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">🎯 Demo Brief Templates</h6>
+                <small class="text-muted">Click any demo brief to copy its data to the form above</small>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for demo in demo_briefs %}
+                    <div class="col-md-6 mb-3">
+                        <div class="border rounded p-3 h-100 demo-brief-card"
+                            style="cursor: pointer; transition: all 0.2s;" onclick="copyDemoBriefToForm({{ demo.id }})"
+                            onmouseover="this.style.backgroundColor='#f8f9fa'; this.style.borderColor='#007bff';"
+                            onmouseout="this.style.backgroundColor=''; this.style.borderColor='';">
+                            <h6 class="text-primary mb-2">{{ demo.title }}</h6>
+                            <p class="small text-muted mb-2">{{ demo.description }}</p>
+                            <div class="small">
+                                <strong>Region:</strong> {{ demo.target_region }}<br>
+                                <strong>Products:</strong> {{ demo.products|length }}
+                                item{{ demo.products|length|pluralize }}<br>
+                                <strong>Languages:</strong>
+                                {% for lang in demo.get_all_languages %}
+                                {{ lang.code|upper }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Example Data -->
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">💡 Example Brief Data</h6>
+                <button type="button" class="btn btn-success btn-sm" onclick="copyExampleToForm()"
+                    data-testid="copy-example-btn" title="Copy example data to form above">
+                    <i class="fas fa-arrow-up"></i> Copy to Form
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Campaign Details</h6>
+                        <p><strong>Title:</strong> <span id="example-title">Pacific Pulse Energy Drink Launch</span></p>
+                        <p><strong>Target Region:</strong> <span id="example-region">Pacific Coast US/Mexico border
+                                cities</span></p>
+                        <p><strong>Target Audience:</strong> <span id="example-audience">18-30, urban, multilingual,
+                                health-conscious but fun-seeking</span></p>
+                        <p><strong>Campaign Message:</strong> <span id="example-message">Natural energy that connects
+                                you to the coastal lifestyle</span></p>
+                        <p><strong>Primary Language:</strong> <span id="example-primary-language">English</span></p>
+                        <p><strong>Additional Languages:</strong> <span id="example-additional-languages"
+                                data-language-ids="{{ example_data.language_ids }}"
+                                data-language-codes="{{ example_data.language_codes_csv }}">French, German</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Products JSON Example</h6>
+                        <pre class="bg-light p-3 rounded small"><code id="example-products">[
+  {
+    "name": "Pacific Pulse Original",
+    "type": "Energy Drink"
+  },
+  {
+    "name": "Pacific Pulse Zero", 
+    "type": "Zero-Sugar Energy Drink"
+  }
+]</code></pre>
+                    </div>
+                </div>
+                <div class="alert alert-info mt-3 mb-0">
+                    <small>
+                        <i class="fas fa-lightbulb"></i>
+                        <strong>Tip:</strong> Click the "Copy to Form" button above to automatically fill the form with
+                        this multilingual example data (English + French + German) for quick testing!
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% load static %}
+
+{% block extra_js %}
+<!-- External JavaScript file -->
+<script src="{% static 'js/create_brief.js' %}"></script>
+
+<!-- Template-specific data initialization -->
+<script>
+    // Set template data for reset function - needs to be inline because it uses Django template vars
+    document.addEventListener('DOMContentLoaded', function () {
+        const additionalLangsEl = document.getElementById('example-additional-languages');
+        if (additionalLangsEl) {
+            additionalLangsEl.setAttribute('data-template-language-ids', '{{ example_data.language_ids }}');
+            additionalLangsEl.setAttribute('data-template-language-codes', '{{ example_data.language_codes_csv }}');
+        }
+    });
+</script>
+
+<!-- Embed demo brief data as JSON for JavaScript -->
+{% if demo_briefs %}
+<script>
+    window.demoBriefData = {
+        {% for demo in demo_briefs %}
+        {{ demo.id }}: {
+            title: "{{ demo.title|escapejs }}",
+            target_region: "{{ demo.target_region|escapejs }}",
+            target_audience: "{{ demo.target_audience|escapejs }}",
+            campaign_message: "{{ demo.campaign_message|escapejs }}",
+            products: {{ demo.products|safe }},
+            primary_language: {{ demo.primary_language.id }},
+            supported_languages: [{% for lang in demo.supported_languages.all %}{{ lang.id }}{% if not forloop.last %}, {% endif %}{% endfor %}]
+        }{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    };
+</script>
+{% endif %}
+{% endblock %}

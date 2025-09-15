@@ -1,0 +1,284 @@
+{% extends 'campaign_generator/base.html' %}
+
+{% block title %}Asset Gallery{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-5">Asset Gallery</h1>
+            <p class="text-muted">Browse all generated campaign assets</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'home' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3" data-testid="gallery-filters">
+                <div class="col-md-3">
+                    <label for="aspect_ratio" class="form-label">Aspect Ratio</label>
+                    <select name="aspect_ratio" id="aspect_ratio" class="form-select" data-testid="aspect-ratio-filter">
+                        <option value="">All Aspect Ratios</option>
+                        {% for ratio in aspect_ratios %}
+                        <option value="{{ ratio.value }}" {% if ratio.is_selected %}selected{% endif %}>
+                            {{ ratio.label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="brief" class="form-label">Campaign Brief</label>
+                    <select name="brief" id="brief" class="form-select" data-testid="brief-filter">
+                        <option value="">All Briefs</option>
+                        {% for brief in briefs %}
+                        <option value="{{ brief.id }}" {% if brief.is_selected %}selected{% endif %}>
+                            {{ brief.title }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="language" class="form-label">Language</label>
+                    <select name="language" id="language" class="form-select" data-testid="language-filter">
+                        <option value="">All Languages</option>
+                        {% for lang in languages %}
+                        <option value="{{ lang.code }}" {% if lang.is_selected %}selected{% endif %}>
+                            {{ lang.name }}
+                            {% if lang.native_name != lang.name %}
+                            ({{ lang.native_name }})
+                            {% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2" data-testid="apply-filters-btn">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    <a href="{% url 'gallery' %}" class="btn btn-outline-secondary" data-testid="clear-filters-btn">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Assets Count and Info -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <p class="text-muted mb-0">
+                <i class="fas fa-images"></i>
+                Showing {{ assets.count }} asset{{ assets.count|pluralize }}
+                {% if selected_aspect_ratio or selected_brief or selected_language %}
+                (filtered)
+                {% endif %}
+                {% if assets_by_language %}
+                across {{ assets_by_language|length }} language{{ assets_by_language|length|pluralize }}
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-6 text-end">
+            {% if assets %}
+            <div class="btn-group" role="group" aria-label="View options">
+                <input type="radio" class="btn-check" name="view-mode" id="grid-view" checked>
+                <label class="btn btn-outline-secondary btn-sm" for="grid-view">
+                    <i class="fas fa-th"></i> Grid
+                </label>
+                <input type="radio" class="btn-check" name="view-mode" id="list-view">
+                <label class="btn btn-outline-secondary btn-sm" for="list-view">
+                    <i class="fas fa-list"></i> List
+                </label>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Language-Grouped Assets -->
+    {% if assets_by_language %}
+    {% for lang_group in assets_by_language %}
+    <div class="language-group mb-5" data-testid="language-group-{{ lang_group.lang_code }}">
+        <!-- Language Header -->
+        <div class="d-flex align-items-center mb-3">
+            <h3 class="h4 mb-0 me-3" {% if lang_group.lang_rtl %}dir="rtl" {% endif %}{% if lang_group.lang_ttb %}
+                style="writing-mode: vertical-rl; text-orientation: mixed;" {% endif %}>
+                <i class="fas fa-language me-2"></i>
+                {{ lang_group.lang_name }}
+                {% if lang_group.show_native_name %}
+                <span class="text-muted">({{ lang_group.lang_native }})</span>
+                {% endif %}
+            </h3>
+            <span class="badge bg-primary">{{ lang_group.count }} asset{{ lang_group.count|pluralize }}</span>
+            {% if lang_group.show_direction_badge %}
+            <span class="badge bg-info ms-2">{{ lang_group.lang_direction_badge }}</span>
+            {% endif %}
+        </div>
+
+        <!-- Assets Grid for this Language -->
+        <div class="row g-3" data-testid="asset-grid-{{ lang_group.lang_code }}">
+            {% for asset in lang_group.assets %}
+            <div class="col-lg-3 col-md-4 col-sm-6 asset-item" data-testid="asset-item-{{ asset.asset_id }}">
+                <div class="card h-100 shadow-sm">
+                    <!-- Asset Image -->
+                    <div class="position-relative">
+                        {% if asset.has_image %}
+                        <a href="{{ asset.detail_url }}" class="text-decoration-none">
+                            <img src="{{ asset.thumbnail_url }}"
+                                alt="{{ asset.title }} - {{ asset.aspect_ratio_badge }}" class="card-img-top"
+                                style="height: 180px; object-fit: cover; cursor: pointer;"
+                                data-testid="asset-thumbnail-{{ asset.asset_id }}">
+                        </a>
+                        {% else %}
+                        <div class="card-img-top d-flex align-items-center justify-content-center bg-light"
+                            style="height: 180px;">
+                            <i class="fas fa-image fa-2x text-muted"></i>
+                        </div>
+                        {% endif %}
+
+                        <!-- Aspect ratio badge -->
+                        <span class="position-absolute top-0 end-0 badge bg-primary m-2">
+                            {{ asset.aspect_ratio_badge }}
+                        </span>
+
+                        <!-- Language badge -->
+                        <span class="position-absolute top-0 start-0 badge bg-info m-2">
+                            {{ asset.lang_code_badge }}
+                        </span>
+                    </div>
+
+                    <!-- Asset Info -->
+                    <div class="card-body py-2">
+                        <h6 class="card-title mb-1">
+                            <a href="{{ asset.detail_url }}" class="text-decoration-none text-dark"
+                                data-testid="asset-title-{{ asset.asset_id }}">
+                                {{ asset.title }}
+                            </a>
+                        </h6>
+                        <p class="card-text text-muted small mb-1">
+                            <i class="fas fa-briefcase"></i>
+                            <a href="{{ asset.brief_url }}" class="text-muted text-decoration-none">
+                                {{ asset.brief_title }}
+                            </a>
+                        </p>
+                        <p class="card-text text-muted small mb-0">
+                            <i class="fas fa-calendar-alt"></i> {{ asset.created_date }}
+                        </p>
+                        <p class="card-text text-muted small mb-0">
+                            <i class="fas fa-clock"></i> {{ asset.time_ago|timesince }} ago
+                        </p>
+                    </div>
+
+                    <!-- Asset Actions -->
+                    <div class="card-footer bg-transparent border-0 py-2">
+                        <div class="d-flex gap-1">
+                            <a href="{{ asset.detail_url }}" class="btn btn-sm btn-outline-primary flex-fill"
+                                data-testid="view-asset-btn-{{ asset.asset_id }}">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            {% if asset.has_image %}
+                            <a href="{{ asset.download_url }}" class="btn btn-sm btn-outline-secondary"
+                                download="{{ asset.download_filename }}"
+                                data-testid="download-asset-btn-{{ asset.asset_id }}">
+                                <i data-feather="download"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5" data-testid="empty-gallery">
+        <i class="fas fa-images fa-4x text-muted mb-4"></i>
+        <h4 class="text-muted">No Assets Found</h4>
+        {% if selected_aspect_ratio or selected_brief or selected_language %}
+        <p class="text-muted mb-4">Try adjusting your filters or <a href="{% url 'gallery' %}">view all assets</a>.</p>
+        {% else %}
+        <p class="text-muted mb-4">No campaign assets have been generated yet.</p>
+        <a href="{% url 'create_brief' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create Your First Brief
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    /* Text direction support for Asian languages */
+    .text-direction-rtl {
+        direction: rtl;
+        text-align: right;
+    }
+
+    .text-direction-ttb {
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+    }
+
+    /* Language group styling */
+    .language-group {
+        border-left: 4px solid #007bff;
+        padding-left: 1rem;
+    }
+
+    .language-group:nth-child(even) {
+        border-left-color: #28a745;
+    }
+
+    .language-group:nth-child(3n) {
+        border-left-color: #ffc107;
+    }
+
+    .language-group:nth-child(4n) {
+        border-left-color: #dc3545;
+    }
+
+    /* Optimized card spacing for vertical height */
+    .asset-item .card {
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .asset-item .card:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Reduce line height for compact text */
+    .asset-item .card-body .card-text {
+        line-height: 1.3;
+    }
+
+    .asset-item .card-body .card-title {
+        line-height: 1.2;
+    }
+
+    /* Minimize badge spacing */
+    .asset-item .badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.4rem;
+    }
+</style>
+
+<script>
+    // View mode toggle functionality (simplified for language groups)
+    document.addEventListener('DOMContentLoaded', function () {
+        const gridView = document.getElementById('grid-view');
+        const listView = document.getElementById('list-view');
+
+        // For now, we only support grid view with language grouping
+        // List view would need additional implementation
+        if (listView) {
+            listView.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

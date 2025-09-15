@@ -1,0 +1,122 @@
+[
+  {
+    "model": "campaign_generator.demobrief",
+    "pk": 1,
+    "fields": {
+      "title": "Sunshine Smoothie Summer Splash",
+      "target_region": "California & Florida",
+      "target_audience": "Health-conscious families with kids (25-40) who love outdoor activities, beach days, and creating joyful memories together in the sunshine.",
+      "campaign_message": "Blend Joy Into Every Day - Sunshine in a bottle for your family's brightest moments",
+      "products": [
+        {"name": "Sunshine Mango Smoothie", "type": "Beverage"},
+        {"name": "Sunshine Berry Blast", "type": "Beverage"},
+        {"name": "Sunshine Tropical Paradise", "type": "Beverage"}
+      ],
+      "primary_language": 1,
+      "description": "Vibrant campaign for healthy family smoothies. Emphasizes joy, sunshine, outdoor fun, and bringing families together with delicious, nutritious drinks.",
+      "is_active": true,
+      "translation_config": {
+        "tone": "joyful",
+        "style": "family-friendly"
+      },
+      "created_at": "2025-09-14T12:00:00Z",
+      "updated_at": "2025-09-14T12:00:00Z"
+    }
+  },
+  {
+    "model": "campaign_generator.demobrief",
+    "pk": 2,
+    "fields": {
+      "title": "Rainbow Kids Art Studio",
+      "target_region": "North America",
+      "target_audience": "Creative parents and grandparents (30-55) looking for fun, mess-free art activities that spark imagination and bring smiles to children's faces.",
+      "campaign_message": "Paint Your World with Wonder - Where creativity meets endless giggles and colorful memories",
+      "products": [
+        {"name": "Rainbow Washable Crayons", "type": "Art Supply"},
+        {"name": "Sparkle Paint Set", "type": "Art Supply"},
+        {"name": "Magic Drawing Pad", "type": "Art Supply"}
+      ],
+      "primary_language": 1,
+      "description": "Cheerful campaign for children's art supplies. Focus on creativity, imagination, bright colors, and the pure joy of artistic expression.",
+      "is_active": true,
+      "translation_config": {
+        "tone": "playful",
+        "style": "imaginative"
+      },
+      "created_at": "2025-09-14T12:01:00Z",
+      "updated_at": "2025-09-14T12:01:00Z"
+    }
+  },
+  {
+    "model": "campaign_generator.demobrief",
+    "pk": 3,
+    "fields": {
+      "title": "Golden Hour Outdoor Adventure Gear",
+      "target_region": "Pacific Northwest & Colorado",
+      "target_audience": "Adventure-loving millennials (22-35) who chase sunsets, love hiking, camping, and sharing their outdoor experiences on social media.",
+      "campaign_message": "Chase Every Golden Hour - Gear that shines as bright as your adventures",
+      "products": [
+        {"name": "Sunrise Hiking Backpack", "type": "Outdoor Gear"},
+        {"name": "Golden Hour Camping Chair", "type": "Outdoor Gear"},
+        {"name": "Sunset Picnic Blanket", "type": "Outdoor Gear"}
+      ],
+      "primary_language": 1,
+      "description": "Uplifting campaign for outdoor adventure gear. Emphasizes golden hour photography, breathtaking sunsets, and the joy of outdoor exploration.",
+      "is_active": true,
+      "translation_config": {
+        "tone": "adventurous",
+        "style": "inspirational"
+      },
+      "created_at": "2025-09-14T12:02:00Z",
+      "updated_at": "2025-09-14T12:02:00Z"
+    }
+  },
+  {
+    "model": "campaign_generator.demobrief",
+    "pk": 4,
+    "fields": {
+      "title": "Happy Paws Pet Paradise",
+      "target_region": "Suburban USA",
+      "target_audience": "Devoted pet parents (25-50) who spoil their furry family members and love sharing cute pet moments that make everyone smile.",
+      "campaign_message": "Unleash Pure Happiness - Because every tail wag deserves to be celebrated",
+      "products": [
+        {"name": "Bouncy Ball Bonanza", "type": "Pet Toy"},
+        {"name": "Cuddle Cloud Pet Bed", "type": "Pet Accessory"},
+        {"name": "Treat Time Puzzle Feeder", "type": "Pet Accessory"}
+      ],
+      "primary_language": 1,
+      "description": "Heartwarming campaign for premium pet products. Focus on the unconditional love between pets and owners, playful moments, and pure happiness.",
+      "is_active": true,
+      "translation_config": {
+        "tone": "heartwarming",
+        "style": "loving"
+      },
+      "created_at": "2025-09-14T12:03:00Z",
+      "updated_at": "2025-09-14T12:03:00Z"
+    }
+  },
+  {
+    "model": "campaign_generator.demobrief",
+    "pk": 5,
+    "fields": {
+      "title": "Bloom & Glow Garden Party Collection",
+      "target_region": "Southern USA & Texas",
+      "target_audience": "Social hostesses and garden enthusiasts (28-45) who love bringing people together for memorable outdoor celebrations filled with laughter and beauty.",
+      "campaign_message": "Let Your Garden Party Shine - Where beautiful moments bloom and friendships glow",
+      "products": [
+        {"name": "Fairy Light Garden Strings", "type": "Party Decor"},
+        {"name": "Bloom Centerpiece Kits", "type": "Party Decor"},
+        {"name": "Glow Lantern Collection", "type": "Party Decor"}
+      ],
+      "primary_language": 1,
+      "description": "Elegant yet joyful campaign for garden party decorations. Emphasizes magical outdoor gatherings, warm friendships, and creating enchanting moments.",
+      "is_active": true,
+      "translation_config": {
+        "tone": "elegant",
+        "style": "magical"
+      },
+      "created_at": "2025-09-14T12:04:00Z",
+      "updated_at": "2025-09-14T12:04:00Z"
+    }
+  }
+]

@@ -1,0 +1,179 @@
+{% extends 'campaign_generator/base.html' %}
+
+{% block title %}{{ asset.product_name }} - {{ asset.aspect_ratio }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Navigation breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'brief_detail' asset.brief.id %}">{{ asset.brief.title }}</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{{ asset.product_name }} - {{ asset.aspect_ratio }}
+            </li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Main asset display -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">{{ asset.product_name }}</h4>
+                    <div class="badge-group">
+                        <span class="badge bg-primary">{{ asset.aspect_ratio }}</span>
+                        <span class="badge bg-info">{{ asset.language.code|upper }}</span>
+                        <span class="badge bg-secondary">{{ asset.brief.target_region }}</span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Main image display -->
+                    {% if asset.image_file %}
+                    <img src="{{ asset.image_file.url }}" alt="{{ asset.product_name }} - {{ asset.aspect_ratio }}"
+                        class="img-fluid w-100" style="max-height: 600px; object-fit: contain; background: #f8f9fa;"
+                        data-testid="asset-main-image">
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-image fa-3x mb-3"></i>
+                        <p>Image not available</p>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar-alt"></i> Generated: {{ asset.created_at|date:"Y-m-d\TH:i:s\Z" }}
+                            </small>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            {% if asset.generation_time_seconds %}
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i> {{ asset.generation_time_seconds|floatformat:1 }}s
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="mt-3 d-flex gap-2">
+                {% if asset.image_file %}
+                <a href="{{ asset.image_file.url }}" class="btn btn-primary"
+                    download="{{ asset.product_name }}_{{ asset.aspect_ratio }}.jpg" data-testid="download-asset-btn">
+                    <i data-feather="download"></i> Download
+                </a>
+                <a href="{{ asset.image_file.url }}" target="_blank" class="btn btn-outline-secondary"
+                    data-testid="view-fullsize-btn">
+                    <i class="fas fa-external-link-alt"></i> View Full Size
+                </a>
+                {% endif %}
+                <a href="{% url 'brief_detail' asset.brief.id %}" class="btn btn-outline-primary"
+                    data-testid="back-to-brief-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Brief
+                </a>
+            </div>
+        </div>
+
+        <!-- Asset details sidebar -->
+        <div class="col-lg-4">
+            <!-- Asset Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Asset Details</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Product:</dt>
+                        <dd class="col-sm-7">{{ asset.product_name }}</dd>
+
+                        <dt class="col-sm-5">Aspect Ratio:</dt>
+                        <dd class="col-sm-7">{{ asset.aspect_ratio }}</dd>
+
+                        <dt class="col-sm-5">Campaign:</dt>
+                        <dd class="col-sm-7">{{ asset.brief.title }}</dd>
+
+                        <dt class="col-sm-5">Target Region:</dt>
+                        <dd class="col-sm-7">{{ asset.brief.target_region }}</dd>
+
+                        <dt class="col-sm-5">Target Audience:</dt>
+                        <dd class="col-sm-7">{{ asset.brief.target_audience }}</dd>
+
+                        {% if asset.generation_time_seconds %}
+                        <dt class="col-sm-5">Generation Time:</dt>
+                        <dd class="col-sm-7">{{ asset.generation_time_seconds|floatformat:1 }} seconds</dd>
+                        {% endif %}
+
+                        <dt class="col-sm-5">File Path:</dt>
+                        <dd class="col-sm-7">
+                            <small class="text-muted">{{ asset.organized_file_path|default:"Not organized" }}</small>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Campaign Message -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bullhorn"></i> Campaign Message</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ asset.brief.campaign_message }}</p>
+                </div>
+            </div>
+
+            <!-- AI Generation Details -->
+            {% if asset.ai_prompt %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-robot"></i> AI Prompt</h5>
+                </div>
+                <div class="card-body">
+                    <details>
+                        <summary class="btn btn-sm btn-outline-secondary mb-2">View Prompt</summary>
+                        <pre class="bg-light p-3 rounded"
+                            style="font-size: 0.85em; white-space: pre-wrap;">{{ asset.ai_prompt }}</pre>
+                    </details>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Related Assets -->
+            {% if related_assets %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-images"></i> Related Assets</h5>
+                    <small class="text-muted">Other assets from this campaign</small>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        {% for related_asset in related_assets %}
+                        <div class="col-6">
+                            <a href="{% url 'asset_detail' related_asset.id %}" class="text-decoration-none"
+                                data-testid="related-asset-{{ related_asset.id }}">
+                                <div class="card border-0 bg-light">
+                                    {% if related_asset.image_file %}
+                                    <img src="{{ related_asset.image_file.url }}" alt="{{ related_asset.product_name }}"
+                                        class="card-img-top" style="height: 80px; object-fit: cover;">
+                                    {% endif %}
+                                    <div class="card-body p-2">
+                                        <small class="fw-bold d-block">{{ related_asset.product_name }}</small>
+                                        <div class="d-flex gap-1 align-items-center">
+                                            <span class="badge bg-primary" style="font-size: 0.65em;">{{ related_asset.aspect_ratio }}</span>
+                                            <span class="badge bg-info" style="font-size: 0.65em;">{{ related_asset.language.code|upper }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

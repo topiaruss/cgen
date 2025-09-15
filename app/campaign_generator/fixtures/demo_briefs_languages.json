@@ -1,0 +1,72 @@
+[
+  {
+    "model": "campaign_generator.demobrief_supported_languages",
+    "fields": {
+      "demobrief": 1,
+      "language": 3
+    }
+  },
+  {
+    "model": "campaign_generator.demobrief_supported_languages", 
+    "fields": {
+      "demobrief": 1,
+      "language": 2
+    }
+  },
+  {
+    "model": "campaign_generator.demobrief_supported_languages",
+    "fields": {
+      "demobrief": 2,
+      "language": 3
+    }
+  },
+  {
+    "model": "campaign_generator.demobrief_supported_languages",
+    "fields": {
+      "demobrief": 2,
+      "language": 4
+    }
+  },
+  {
+    "model": "campaign_generator.demobrief_supported_languages",
+    "fields": {
+      "demobrief": 3,
+      "language": 2
+    }
+  },
+  {
+    "model": "campaign_generator.demobrief_supported_languages",
+    "fields": {
+      "demobrief": 3,
+      "language": 3
+    }
+  },
+  {
+    "model": "campaign_generator.demobrief_supported_languages",
+    "fields": {
+      "demobrief": 4,
+      "language": 3
+    }
+  },
+  {
+    "model": "campaign_generator.demobrief_supported_languages",
+    "fields": {
+      "demobrief": 4,
+      "language": 2
+    }
+  },
+  {
+    "model": "campaign_generator.demobrief_supported_languages",
+    "fields": {
+      "demobrief": 5,
+      "language": 2
+    }
+  },
+  {
+    "model": "campaign_generator.demobrief_supported_languages",
+    "fields": {
+      "demobrief": 5,
+      "language": 3
+    }
+  }
+]

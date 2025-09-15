@@ -1,0 +1,161 @@
+{% extends 'campaign_generator/base.html' %}
+
+{% block title %}Home - Creative Automation Pipeline{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="text-center mb-5">
+            <h1 class="display-4">Campaign Generator</h1>
+            <p class="lead">GenAI-powered social campaign asset generation for rapid creative development</p>
+            <p class="text-muted">FDE Proof of Concept - 6-Hour Implementation</p>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-5">
+    <div class="col-md-6">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <h2 class="card-title">{{ total_briefs }}</h2>
+                <p class="card-text">Campaign Briefs</p>
+                <a href="{% url 'create_brief' %}" class="btn btn-light">Create New Brief</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <h2 class="card-title">{{ total_assets }}</h2>
+                <p class="card-text">Generated Assets</p>
+                <a href="{% url 'gallery' %}" class="btn btn-light">View Gallery</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-5">
+    <div class="col-12">
+        <h3>Quick Actions</h3>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">📝 Create Brief</h5>
+                <p class="card-text">Create a new campaign brief with target audience, products, and messaging</p>
+                <a href="{% url 'create_brief' %}" class="btn btn-primary">Start Creating</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">📁 Upload Brief</h5>
+                <p class="card-text">Upload a JSON or YAML file containing your campaign brief</p>
+                <a href="{% url 'upload_brief' %}" class="btn btn-primary">Upload File</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">🖼️ View Gallery</h5>
+                <p class="card-text">Browse all generated campaign assets across different aspect ratios</p>
+                <a href="{% url 'gallery' %}" class="btn btn-primary">Browse Assets</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Briefs -->
+{% if recent_briefs %}
+<div class="row mb-5">
+    <div class="col-12">
+        <h3>Recent Campaign Briefs</h3>
+    </div>
+    {% for brief in recent_briefs %}
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ brief.title }}</h5>
+                <p class="card-text text-muted">{{ brief.target_region }}</p>
+                <p class="card-text">{{ brief.campaign_message|truncatewords:15 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">{{ brief.product_count }} products</small>
+                    <small class="text-muted">{{ brief.created_at|date:"Y-m-d\TH:i:s\Z" }}</small>
+                </div>
+                <div class="mt-2">
+                    <a href="{% url 'brief_detail' brief.id %}" class="btn btn-sm btn-outline-primary">View Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Recent Assets -->
+{% if recent_assets %}
+<div class="row mb-5">
+    <div class="col-12">
+        <h3>Recent Generated Assets</h3>
+    </div>
+    <div class="asset-grid">
+        {% for asset in recent_assets %}
+        <div class="card asset-card">
+            {% if asset.image_file %}
+            <img src="{{ asset.image_file.url }}" alt="{{ asset.product_name }}" class="card-img-top">
+            {% endif %}
+            <div class="card-body">
+                <h6 class="card-title">{{ asset.product_name }}</h6>
+                <div class="d-flex justify-content-between">
+                    <span class="badge bg-secondary aspect-ratio-badge">{{ asset.aspect_ratio }}</span>
+                    <small class="text-muted">{{ asset.created_at|date:"Y-m-d\TH:i:s\Z" }}</small>
+                </div>
+                <p class="card-text text-muted small">{{ asset.brief.title }}</p>
+                <a href="{% url 'asset_detail' asset.id %}" class="btn btn-sm btn-outline-primary">View Asset</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Demo Information -->
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5 class="card-title">🎯 FDE Demo Features</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Core Requirements ✅</h6>
+                        <ul class="list-unstyled">
+                            <li>✅ Campaign brief input (JSON/YAML)</li>
+                            <li>✅ Multiple products support</li>
+                            <li>✅ Target region & audience</li>
+                            <li>✅ GenAI image generation (DALL-E 3)</li>
+                            <li>✅ 3 aspect ratios (1:1, 9:16, 16:9)</li>
+                            <li>✅ Text overlay with campaign message</li>
+                            <li>✅ Organized file output</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Bonus Features 🏆</h6>
+                        <ul class="list-unstyled">
+                            <li>✅ Generation logging & reporting</li>
+                            <li>✅ Cost estimation</li>
+                            <li>✅ Performance tracking</li>
+                            <li>✅ Web interface & gallery</li>
+                            <li>✅ ZIP download of organized assets</li>
+                            <li>✅ Django admin interface</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{
+  "files.associations": {
+    "*.html": "django-html"
+  },
+  "emmet.includeLanguages": {
+    "django-html": "html"
+  },
+  "[django-html]": {
+    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false,
+    "editor.formatOnType": false
+  },
+  "editor.formatOnSave": false,
+  "editor.formatOnPaste": false,
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true
+  },
+  "python.defaultInterpreterPath": "./.venv/bin/python",
+  "python.formatting.provider": "none",
+  "python.linting.enabled": false,
+  // Disable auto-formatting for specific files
+  "files.watcherExclude": {
+    "**/app/campaign_generator/templates/campaign_generator/create_brief.html": true
+  }
+}
