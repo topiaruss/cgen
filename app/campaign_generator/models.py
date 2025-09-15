@@ -1,6 +1,5 @@
 from django.db import models
 from django.utils.text import slugify
-from versatileimagefield.fields import VersatileImageField
 
 
 class Language(models.Model):
@@ -89,7 +88,7 @@ class Brief(models.Model):
     )
 
     # Reference image for asset generation
-    reference_image = VersatileImageField(
+    reference_image = models.ImageField(
         upload_to="reference_images/",
         blank=True,
         null=True,
